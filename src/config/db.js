@@ -6,4 +6,5 @@ const prisma = new PrismaClient({
 	adapter: new PrismaPg(process.env.DATABASE_URL),
 });
 
+
 export default prisma;
