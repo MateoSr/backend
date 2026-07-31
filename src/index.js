@@ -1,6 +1,6 @@
 import express from "express";
 import prisma from "../src/config/db.js";
-import userRouter from './router/user.js'
+import userRouter from '../src/usuario/users.route.js'
 
 
 const app = express();
