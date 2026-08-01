@@ -2,6 +2,9 @@ import express from "express";
 import prisma from "../src/config/db.js";
 import userRouter from '../src/usuario/users.route.js'
 import complejoRouter from  './complejo/complejos.routes.js'
+import provinciaRouter from './provincia/provincia.routes.js'
+import localidadRouter from "./localidad/localidad.routes.js";
+
 
 
 const app = express();
@@ -18,6 +21,8 @@ const app = express();
 app.use(express.json());
 app.use("/api/users",userRouter)
 app.use("/api/complejos",complejoRouter)
+app.use("/api/provincias",provinciaRouter)
+app.use("/api/localidad",localidadRouter)
 
 app.get("/", (req, res) => {
   res.send("Hello, World!");
