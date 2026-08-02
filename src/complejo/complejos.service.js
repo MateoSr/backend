@@ -44,7 +44,7 @@ async function postComplejo(complejo){
     
     //Zod me permite valdiar los tipos de datos segun el schema y que esten los obligatorios
     const datosValidados = complejoSchema.parse(complejo)
-    complejos.push(complejo)
+    complejos.push(datosValidados)
     return true
 }
 async function getAllComplejos() {
@@ -60,7 +60,7 @@ async function putComplejo(id,complejoNuevo) {
     if(index === -1){
       return null
     }
-    complejos[index] = {...complejos[index], ...complejoNuevo,id: Number(id)};
+    complejos[index] = {...complejos[index], ...datosValidados,id: Number(id)};
 
     const complejoCambiado = complejos[index]
     return complejoCambiado

@@ -15,7 +15,7 @@ complejoRouter.delete("/:id",borrarComplejo)
 //rutas para obtener los horarios de un complejo
 //horario es debil de complejo
 //ademas nunca vamos a buscar un horario suelto, siempre se buscaran a la hora de mostrar un complejo
-//entonces busco todo desde los mismo endpoints
+//entonces busco todo desde los mismos endpoints
 complejoRouter.get('/:id_complejo/horarios', obtenerHorarios);
 complejoRouter.get('/:id_complejo/horarios/:num_dia', obtenerHorario);
 complejoRouter.post('/:id_complejo/horarios',crearHorario );

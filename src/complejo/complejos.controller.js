@@ -85,9 +85,6 @@ async function borrarComplejo(req,res) {
         }
 }
 
-
-
-
 export {
   obtenerComplejo,
   obtenerComplejos,
