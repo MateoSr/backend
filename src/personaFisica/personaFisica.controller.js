@@ -48,7 +48,7 @@ async function modificarPersonaFisica(req,res) {
     try{
         const {dni} = req.params
         const personaFisicaModificada = req.body
-        const resultado = await putUser(dni,personaFisicaModificada)
+        const resultado = await putPersonaFisica(dni,personaFisicaModificada)
         if(!resultado){
             return res.status(404).json({message:"No se encontro la persona"})
         }
@@ -65,7 +65,7 @@ async function modificarPersonaFisica(req,res) {
 async function borrarPersonaFisica(req,res) {
     try{
         const {dni} = req.params
-        const response = await deleteUser(dni)
+        const response = await deletePersonaFisica(dni)
         if(!response){
             return res.status(404).json({message:"No se encontro la persona"})
         }

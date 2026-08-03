@@ -24,18 +24,18 @@ async function getAllPersonasJuridicas() {
 async function putPersonaJuridica(cuit,personaJuridicaNueva) {
     const datosValidados = personaJuridicaSchema.partial().parse(personaJuridicaNueva)
 
-    const index = personasJuridicas.findIndex(personaJuridica => personaJuridica.cuit === Number(cuit));
+    const index = personasJuridicas.findIndex(personaJuridica => personaJuridica.cuit == cuit);
     if(index === -1){
       return null
     }
-    personasJuridicas[index] = {...personasJuridicas[index], ...datosValidados,cuit: Number(cuit)};
+    personasJuridicas[index] = {...personasJuridicas[index], ...datosValidados,cuit: cuit};
 
     const personaJuridicaCambiada = personasJuridicas[index]
     return personaJuridicaCambiada
 }
 
-async function deletePersonaJuridica(dni) {
-    const index = personasJuridicas.findIndex(personaJuridica => personaJuridica.cuit === Number(cuit));
+async function deletePersonaJuridica(cuit) {
+    const index = personasJuridicas.findIndex(personaJuridica => personaJuridica.cuit == cuit);
     if(index === -1){
       return false
     }

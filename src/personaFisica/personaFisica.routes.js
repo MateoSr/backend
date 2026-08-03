@@ -4,10 +4,10 @@ import {obtenerPersonaFisica, obtenerPersonasFisicas, crearPersonaFisica, modifi
 const personaFisicaRouter = Router()
 
 personaFisicaRouter.get('/',obtenerPersonasFisicas)
-personaFisicaRouter.get('/:id',obtenerPersonaFisica)
+personaFisicaRouter.get('/:dni',obtenerPersonaFisica)
 personaFisicaRouter.post('/',crearPersonaFisica)
-personaFisicaRouter.put('/:id',modificarPersonaFisica)
-personaFisicaRouter.delete('/:id',borrarPersonaFisica)
+personaFisicaRouter.put('/:dni',modificarPersonaFisica)
+personaFisicaRouter.delete('/:dni',borrarPersonaFisica)
 
 
 export default personaFisicaRouter

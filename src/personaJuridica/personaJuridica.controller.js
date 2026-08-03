@@ -47,8 +47,9 @@ async function crearPersonaJuridica(req,res) {
 async function modificarPersonaJuridica(req,res) {
     try{
         const {cuit} = req.params
+        console.log(cuit)
         const personaJuridicaModificada = req.body
-        const resultado = await putUser(cuit,personaJuridicaModificada)
+        const resultado = await putPersonaJuridica(cuit,personaJuridicaModificada)
         if(!resultado){
             return res.status(404).json({message:"No se encontro la empresa"})
         }
@@ -65,7 +66,7 @@ async function modificarPersonaJuridica(req,res) {
 async function borrarPersonaJuridica(req,res) {
     try{
         const {cuit} = req.params
-        const response = await deleteUser(cuit)
+        const response = await deletePersonaJuridica(cuit)
         if(!response){
             return res.status(404).json({message:"No se encontro la empresa"})
         }

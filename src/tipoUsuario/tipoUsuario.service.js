@@ -10,7 +10,7 @@ async function getTiposUsuario(){
 };
 
 async function getTipoUsuario(id){
-    const tipoUsuario = tiposUsuario.find(tipoUsuario => tiposUsuario.id === Number(id))
+    const tipoUsuario= tiposUsuario.find(t => t.id === Number(id))
     return tipoUsuario || null
 }
 
