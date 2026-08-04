@@ -9,4 +9,4 @@ export const userSchema = z.object({
   id_tipoUsuario: z.number({ required_error: "El id_tipoUsuario es obligatorio" }).int("El id debe ser un numero entero").positive("El id debe ser un número positivo"),
   dni: z.string().min(7, "El dni debe tener como minimo 7 caracteres").optional(),
   cuit: z.string().min(11, "El cuit debe tener como minimo 11 caracteres").optional()
-});
+}).strict();;

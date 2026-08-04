@@ -38,7 +38,7 @@ async function crearComplejo(req,res) {
         const resultado = await postComplejo(complejo)
         return res.status(201).json({
             message: 'Complejo creado correctamente',
-            complejo: complejo
+            complejo: resultado
         })
 
         }catch(error)

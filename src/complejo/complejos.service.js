@@ -1,4 +1,5 @@
 import { complejoSchema } from "./complejos.schema.js";
+import { proximoId } from "../shared/funciones.js";
 
 const complejos = [
   {
@@ -44,8 +45,12 @@ async function postComplejo(complejo){
     
     //Zod me permite valdiar los tipos de datos segun el schema y que esten los obligatorios
     const datosValidados = complejoSchema.parse(complejo)
-    complejos.push(datosValidados)
-    return true
+    const  nextId = proximoId(complejos)
+    const nuevoComplejo = {id: nextId,...datosValidados};
+
+    // 4. Guardamos en el arreglo
+    complejos.push(nuevoComplejo);
+    return nuevoComplejo
 }
 async function getAllComplejos() {
     return complejos || null   

@@ -31,7 +31,7 @@ async function crearUser(req,res) {
         const resultado = await postUser(user)
         return res.status(201).json({
             message: 'Usuario creado correctamente',
-            user: user
+            user: resultado
         })
 
         }catch(error)
