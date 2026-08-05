@@ -86,7 +86,7 @@ async function borrarHorario(req,res) {
         if(!resultado){
             return res.status(404).json({message:"No se encontro el horario"})
         }
-        return res.status(204).json({message:"Horario borrado correctamente"})
+        return res.status(200).json({message:"Horario borrado correctamente"})
 
     }catch(error)
         {

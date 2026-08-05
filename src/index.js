@@ -7,6 +7,9 @@ import localidadRouter from "./localidad/localidad.routes.js";
 import tipoUsuarioRouter from "./tipoUsuario/tipoUsuario.routes.js";
 import personaJuridicaRouter from "./personaJuridica/personaJuridica.routes.js";
 import personaFisicaRouter from "./personaFisica/personaFisica.routes.js";
+import loginRouter from "./login/login.routes.js";
+import cors from "cors";
+import morgan from "morgan";
 
 
 const app = express();
@@ -20,7 +23,9 @@ const app = express();
 //   }
 // }
 
-app.use(express.json());
+app.use(morgan("dev")); //ver las peticiones que llegan al servidor
+app.use(cors()); //todas las rutas con CORS, algo de seguridad
+app.use(express.json()); //servidor recibe y envia json
 app.use("/api/users",userRouter)
 app.use("/api/complejos",complejoRouter)
 app.use("/api/provincias",provinciaRouter)
@@ -28,6 +33,7 @@ app.use("/api/localidad",localidadRouter)
 app.use("/api/tipoUsuario",tipoUsuarioRouter)
 app.use("/api/personaJuridica",personaJuridicaRouter)
 app.use("/api/personaFisica",personaFisicaRouter)
+app.use("/api/login",loginRouter)
 
 
 app.get("/", (req, res) => {
