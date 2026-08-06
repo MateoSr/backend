@@ -1,0 +1,268 @@
+### ==========================================
+### VARIABLES GLOBALES
+### ==========================================
+@baseUrl = http://localhost:3000/api
+@userId = 1
+@idTipoUsuario = 1
+@idProvincia = 21
+@idLocalidad = 102
+@cuit = 30711234568
+@dni = 40123456
+@idComplejo = 1
+@numDia = 1
+
+
+### ==========================================
+### USUARIOS (userRouter)
+### ==========================================
+
+### Obtener todos los usuarios
+GET {{baseUrl}}/users
+
+###
+
+### Obtener un usuario por ID
+GET {{baseUrl}}/users/{{userId}}
+
+###
+
+### Crear un usuario
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "email": "juan.perez@gmail.com",
+  "telefono": "3415123456",
+  "password": "Password123!",
+  "id_tipoUsuario": 1,
+  "dni": "40123456"
+}
+
+###
+
+### Modificar un usuario
+PUT {{baseUrl}}/users/{{userId}}
+Content-Type: application/json
+
+{
+  "email": "juan.perez.modificado@gmail.com",
+  "telefono": "3415999999",
+  "password": "Nuevapassword123!",
+  "id_tipoUsuario": 1
+}
+
+###
+
+### Borrar un usuario
+DELETE {{baseUrl}}/users/{{userId}}
+
+
+### ==========================================
+### TIPOS DE USUARIO (tipoUsuarioRouter)
+### ==========================================
+
+### Obtener todos los tipos de usuario
+GET {{baseUrl}}/tipoUsuario
+###
+
+### Obtener un tipo de usuario por ID
+GET {{baseUrl}}/tipoUsuario/{{idTipoUsuario}}
+###
+
+
+### ==========================================
+### PROVINCIAS (provinciaRouter)
+### ==========================================
+
+### Obtener todas las provincias
+GET {{baseUrl}}/provincias
+###
+
+### Obtener una provincia por ID
+GET {{baseUrl}}/provincias/{{idProvincia}}
+###
+
+### Obtener localidades de una provincia
+GET {{baseUrl}}/provincias/{{idProvincia}}/localidades
+
+
+### ==========================================
+### LOCALIDADES (localidadRouter)
+### ==========================================
+
+### Obtener todas las localidades
+GET {{baseUrl}}/localidades
+
+###
+
+### Obtener una localidad por ID
+GET {{baseUrl}}/localidades/{{idLocalidad}}
+
+
+### ==========================================
+### PERSONAS JURÍDICAS (personaJuridicaRouter)
+### ==========================================
+
+### Obtener todas las personas jurídicas
+GET {{baseUrl}}/personas-juridicas
+
+###
+
+### Obtener una persona jurídica por CUIT
+GET {{baseUrl}}/personas-juridicas/{{cuit}}
+
+###
+
+### Crear persona jurídica
+POST {{baseUrl}}/personas-juridicas
+Content-Type: application/json
+
+{
+  "cuit": "30711234568",
+  "razonSocial": "Complejo Deportivo El Sol S.R.L.",
+  "telefono": "3413987654",
+  "email": "contacto@complejoelsol.com"
+}
+
+###
+
+### Modificar persona jurídica
+PUT {{baseUrl}}/personas-juridicas/{{cuit}}
+Content-Type: application/json
+
+{
+  "razonSocial": "Complejo Deportivo El Sol S.A.",
+  "telefono": "3413980000",
+  "email": "administracion@complejoelsol.com"
+}
+
+###
+
+### Borrar persona jurídica
+DELETE {{baseUrl}}/personas-juridicas/{{cuit}}
+
+
+### ==========================================
+### PERSONAS FÍSICAS (personaFisicaRouter)
+### ==========================================
+
+### Obtener todas las personas físicas
+GET {{baseUrl}}/personas-fisicas
+
+###
+
+### Obtener una persona física por DNI
+GET {{baseUrl}}/personas-fisicas/{{dni}}
+
+###
+
+### Crear persona física
+POST {{baseUrl}}/personas-fisicas
+Content-Type: application/json
+
+{
+  "dni": "40123456",
+  "nombre": "Juan",
+  "apellido": "Pérez",
+  "telefono": "3415123456"
+}
+
+###
+
+### Modificar persona física
+PUT {{baseUrl}}/personas-fisicas/{{dni}}
+Content-Type: application/json
+
+{
+  "nombre": "Juan Carlos",
+  "apellido": "Pérez",
+  "telefono": "3415123456"
+}
+
+###
+
+### Borrar persona física
+DELETE {{baseUrl}}/personas-fisicas/{{dni}}
+
+
+### ==========================================
+### COMPLEJOS Y SUS HORARIOS (complejoRouter)
+### ==========================================
+
+### Obtener todos los complejos
+GET {{baseUrl}}/complejos
+
+###
+
+### Obtener un complejo por ID
+GET {{baseUrl}}/complejos/{{idComplejo}}
+
+###
+
+### Crear un complejo
+POST {{baseUrl}}/complejos
+Content-Type: application/json
+
+{
+  "nombre": "Complejo El Sol",
+  "direccion": "Av. Pellegrini 1234",
+  "id_localidad": 102,
+  "id_dueño": 1
+  //"id_encargado":2
+}
+
+###
+
+### Modificar un complejo
+PUT {{baseUrl}}/complejos/{{idComplejo}}
+Content-Type: application/json
+
+{
+  "nombre": "Complejo El Sol Sport",
+  "direccion": "Av. Pellegrini 1234",
+  "id_localidad": 102
+}
+
+###
+
+### Borrar un complejo
+DELETE {{baseUrl}}/complejos/{{idComplejo}}
+
+###
+
+### Obtener todos los horarios de un complejo
+GET {{baseUrl}}/complejos/{{idComplejo}}/horarios
+
+###
+
+### Obtener horario de un complejo para un día específico
+GET {{baseUrl}}/complejos/{{idComplejo}}/horarios/{{numDia}}
+
+###
+
+### Crear un horario para un complejo
+POST {{baseUrl}}/complejos/{{idComplejo}}/horarios
+Content-Type: application/json
+
+{
+  "id_complejo": {{idComplejo}},
+  "num_dia": 1,
+  "horarioApertura": "08:00",
+  "horarioCierre": "23:00"
+}
+
+###
+
+### Modificar un horario de un complejo para un día
+PUT {{baseUrl}}/complejos/{{idComplejo}}/horarios/{{numDia}}
+Content-Type: application/json
+
+{
+  "horarioApertura": "11:00",
+  "horarioCierre": "00:00"
+}
+
+###
+
+### Borrar un horario de un complejo para un día
+DELETE {{baseUrl}}/complejos/{{idComplejo}}/horarios/{{numDia}}

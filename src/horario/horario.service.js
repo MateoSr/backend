@@ -110,7 +110,6 @@ async function getHorario(id_complejo,num_dia) {
 async function postHorario(horario) {
     const horarioValido = horarioSchema.parse(horario)
     horarios.push(horario)
-    console.log(horarios)
     return true
     
 }

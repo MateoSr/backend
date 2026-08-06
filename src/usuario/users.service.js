@@ -33,6 +33,36 @@ async function getUserId(id) {
     return user || null
 }
 
+
+//funcion que busca a un usuario por si email, para ver si esta usado ese email
+// el parametroDev, indica si devuelve todo el objeto o solo si existe o no
+async function getUserEmail(email,parametroDev = 1) {
+  const user = users.find(user => user.email == email);
+    if(parametroDev == 0){
+      if(!user){
+        return null
+      }
+      return user
+    }
+    else{
+      if(!user){
+        return false
+      }
+      return true
+    }
+}
+
+async function validarUser(email,pass){
+  const user = await getUserEmail(email,0)
+  if(user){
+    if(user.password == pass){
+      return true
+    }
+    return false
+  }
+
+}
+
 async function postUser(user){
     
     //Zod me permite valdiar los tipos de datos segun el schema y que esten los obligatorios
@@ -76,5 +106,6 @@ export {
     postUser,
     getAllUsers,
     putUser,
-    deleteUser
+    deleteUser,
+    validarUser
 }
