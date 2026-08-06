@@ -38,9 +38,9 @@ complejoRouter.delete("/:id_complejo/canchas/:nro",borrarCancha)
 //precio es debil de complejo
 //ademas nunca vamos a buscar un precio suelto, siempre se buscaran a la hora de mostrar un complejo
 //entonces busco todo desde los mismos endpoints
-precioRouter.get("/:id_complejo/canchas/nro/:nro_cancha/precios",obtenerPrecios)
-precioRouter.get("/:id_complejo/canchas/nro/:nro_cancha/precios/:id_precio",obtenerPrecio)
-precioRouter.post("/:id_complejo/canchas/nro/:nro_cancha/precios",crearPrecio)
+complejoRouter.get("/:id_complejo/canchas/nro/:nro_cancha/precios",obtenerPrecios)
+complejoRouter.get("/:id_complejo/canchas/nro/:nro_cancha/precios/:id_precio",obtenerPrecio)
+complejoRouter.post("/:id_complejo/canchas/nro/:nro_cancha/precios",crearPrecio)
 
 export default complejoRouter
 
