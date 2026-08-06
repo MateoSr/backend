@@ -7,6 +7,9 @@ import localidadRouter from "./localidad/localidad.routes.js";
 import tipoUsuarioRouter from "./tipoUsuario/tipoUsuario.routes.js";
 import personaJuridicaRouter from "./personaJuridica/personaJuridica.routes.js";
 import personaFisicaRouter from "./personaFisica/personaFisica.routes.js";
+import turnoRouter from "./turno/turno.routes.js";
+import tipoTurnoRouter from "./tipoTurno/tipoTurno.routes.js";
+import tipoCanchaRouter from "./tipoCancha/tipoCancha.routes.js";
 import loginRouter from "./login/login.routes.js";
 import cors from "cors";
 import morgan from "morgan";
@@ -34,7 +37,9 @@ app.use("/api/tipoUsuario",tipoUsuarioRouter)
 app.use("/api/personaJuridica",personaJuridicaRouter)
 app.use("/api/personaFisica",personaFisicaRouter)
 app.use("/api",loginRouter)
-
+app.use("/api/turnos",turnoRouter)
+app.use("/api/tipoTurno",tipoTurnoRouter)
+app.use("/api/tipoCancha",tipoCanchaRouter)
 
 app.get("/", (req, res) => {
   res.send("Hello, World!");
