@@ -107,5 +107,6 @@ export {
     getAllUsers,
     putUser,
     deleteUser,
-    validarUser
+    validarUser,
+    getUserEmail
 }

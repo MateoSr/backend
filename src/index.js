@@ -33,7 +33,7 @@ app.use("/api/localidad",localidadRouter)
 app.use("/api/tipoUsuario",tipoUsuarioRouter)
 app.use("/api/personaJuridica",personaJuridicaRouter)
 app.use("/api/personaFisica",personaFisicaRouter)
-app.use("/api/login",loginRouter)
+app.use("/api",loginRouter)
 
 
 app.get("/", (req, res) => {

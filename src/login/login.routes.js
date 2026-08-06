@@ -1,9 +1,11 @@
 import { Router } from "express";
-import iniciarSesion from './login.controller.js'
+import {iniciarSesion,registrar} from './login.controller.js'
 
 
 const loginRouter = Router()
 
-loginRouter.post("/",iniciarSesion)
+loginRouter.post("/login",iniciarSesion)
+loginRouter.post("/register",registrar)
+
 
 export default loginRouter

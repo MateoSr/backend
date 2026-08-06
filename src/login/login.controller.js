@@ -1,4 +1,7 @@
-import {postUser, validarUser} from '../usuario/users.service.js'
+import {postUser, validarUser,getUserEmail} from '../usuario/users.service.js'
+import {getPersonaFisicaDni,postPersonaFisica} from '../personaFisica/personaFisica.service.js'
+import { ZodError } from 'zod';
+
 
 
 async function iniciarSesion(req,res) {
@@ -16,4 +19,46 @@ async function iniciarSesion(req,res) {
     
 }
 
-export default iniciarSesion
+async function registrar(req,res) {
+    try{
+        const {email,password,telefono,dni,nombre,apellido,fechaNacimiento} =req.body
+        const user = {
+            dni:dni,
+            email:email,
+            password:password,
+            telefono:telefono,
+            id_tipoUsuario:2
+        }
+
+        const persona ={
+            dni:dni,
+            nombre:nombre,
+            apellido:apellido,
+            fechaNacimiento:fechaNacimiento
+        }
+
+        //verificamos si el email esta usado
+        const busquedaPorEmail = await getUserEmail(user.email)
+        if(busquedaPorEmail){
+            return res.status(400).json({message:"El email ya esta usado"})
+        }
+
+        //busco persona para ver si existe
+        const findPersona = await getPersonaFisicaDni(persona.dni)
+        if(findPersona == null){
+            // si no existe creo
+            const creacionPersona = await postPersonaFisica(persona)
+        }
+        const response = await postUser(user)
+        return res.status(200).json({message:"Usuario registrado con exito"})
+    }catch(error){
+        if (error instanceof ZodError) {
+        return res.status(400).json({
+            message: "Error de validación en los datos ingresados",})
+        }
+        return res.status(400).json({error:error.message})
+    }
+    
+}
+
+export  {iniciarSesion, registrar}
