@@ -1,4 +1,6 @@
 import { turnoSchema } from "./turno.schema.js";
+import { proximoId } from "../shared/funciones.js";
+
 const turnos = [ 
   {"id": 1, "id_cliente": 1, "id_tipo_turno": 1, "id_complejo": 10, "nro_cancha": 1, "horarioInicio": "18:00", "horarioFin": "19:30", "estado": "reservado"},
   {"id": 2, "id_cliente": 1, "id_tipo_turno": 1, "id_complejo": 10, "nro_cancha": 2, "horarioInicio": "19:30", "horarioFin": "21:00", "estado": "reservado"},
