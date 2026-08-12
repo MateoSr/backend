@@ -14,7 +14,8 @@ const canchas = [
   {
     "nro": 3,
     "id_tipo_cancha": 2,
-    "id_complejo": 1,  },
+    "id_complejo": 1,  
+  },
   {
     "nro": 1,
     "id_tipo_cancha": 4,

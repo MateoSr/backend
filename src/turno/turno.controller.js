@@ -1,9 +1,10 @@
 import {getTurnoId,getAllTurnos,postTurno,putTurno,deleteTurno} from './turno.service.js'
 import { ZodError } from 'zod'; //modulo que permimte mostrar los errores de tipos de datos
 async function obtenerTurnos(req,res) {
+    const {id_cliente} = req.query;
     try{
-        const turnos = await getAllTurnos()
-        if(turnos == 0){
+        const turnos = await getAllTurnos({id_cliente})
+        if(!turnos){
             return res.status(404).json({message:"No hay turnos"})
         }
         return res.status(200).json(turnos)

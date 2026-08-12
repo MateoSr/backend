@@ -1,4 +1,5 @@
 import {getAllUsers,getUserId,postUser,deleteUser,putUser} from "./users.service.js"
+import {getPersonaFisicaDni} from "../personaFisica/personaFisica.service.js";
 import { ZodError } from 'zod'; //modulo que permimte mostrar los errores de tipos de datos
 async function obtenerUsers(req,res) {
     try{
@@ -20,6 +21,35 @@ async function obtenerUser(req,res) {
         }
         return res.status(200).json(user)
         }catch(error)
+        {
+        return res.status(400).json({error:error.message})
+        }
+}
+
+async function obtenerUserCompleto(req,res) {
+    try{
+        const {id} = req.params
+        const user = await getUserId(id)
+        const personaFisica = await getPersonaFisicaDni(user.dni)
+        if(!user){
+            return res.status(404).json({message:"No se encontro el usuario"})
+        }
+        if(!personaFisica){
+            return res.status(404).json({message:"No se encontro la persona"})
+        }
+
+        const respuesta = {
+            "id":user.id,
+            "nombre":personaFisica.nombre,
+            "apellido":personaFisica.apellido,
+            "email":user.email,
+            // "password":user.password,
+            "telefono":user.telefono,
+            "fechaNacimiento":personaFisica.fechaNacimiento
+        }
+        return res.status(200).json(respuesta)
+
+    }catch(error)
         {
         return res.status(400).json({error:error.message})
         }
@@ -78,10 +108,30 @@ async function borrarUser(req,res) {
         }
 }
 
+async function modificarUserCompleto(req,res) {
+    try{
+        const {id} = req.params
+        const datosModificados = req.body
+        console.log(datosModificados)
+        return res.status(200).json({
+            message: 'Usuario modificado correctamente',
+            user: datosModificados
+        })
+
+    }catch(error)
+    {
+        return res.status(400).json({error:error.message})
+    }
+}
+
+
+
 export {
   obtenerUsers,
   obtenerUser,
   crearUser,
   borrarUser,
-  modificarUser
+  modificarUser,
+  modificarUserCompleto,
+  obtenerUserCompleto
 };
