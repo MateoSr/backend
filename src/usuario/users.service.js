@@ -1,5 +1,7 @@
 import { userSchema } from "./users.schema.js";
 import { proximoId } from "../shared/funciones.js";
+import bcrypt from "bcryptjs";
+import { error } from "node:console";
 
 const users = [
   {
@@ -35,27 +37,20 @@ async function getUserId(id) {
 
 
 //funcion que busca a un usuario por si email, para ver si esta usado ese email
-// el parametroDev, indica si devuelve todo el objeto o solo si existe o no
-async function getUserEmail(email,parametroDev = 1) {
+async function getUserEmail(email) {
   const user = users.find(user => user.email == email);
-    if(parametroDev == 0){
-      if(!user){
-        return null
-      }
-      return user
+    if(!user){
+      return null
     }
-    else{
-      if(!user){
-        return false
-      }
-      return true
-    }
+    return user
 }
 
 async function validarUser(email,pass){
-  const user = await getUserEmail(email,0)
+  const user = await getUserEmail(email)
+  console.log(user)
   if(user){
-    if(user.password == pass){
+    const verificacion = await bcrypt.compare(pass,user.password)
+    if(verificacion){
       return true
     }
     return false
@@ -66,9 +61,13 @@ async function validarUser(email,pass){
 async function postUser(user){
     
     //Zod me permite valdiar los tipos de datos segun el schema y que esten los obligatorios
+    if(await getUserEmail(user.email)){
+      throw new Error("El email ya se encuentra registrado") 
+    }
     const datosValidados = userSchema.parse(user)
     const  nextId = proximoId(users)
-    const nuevoUsuario = {id: nextId,...datosValidados};
+    const contraSegura = await bcrypt.hash(datosValidados.password,10)
+    const nuevoUsuario = {id: nextId,...datosValidados,password:contraSegura};
     users.push(nuevoUsuario)
     return nuevoUsuario
 }
@@ -81,6 +80,11 @@ async function putUser(id,userNuevo) {
 
     //convierte todos los campos en opcional pero valida que concuerden los tipos
     const datosValidados = userSchema.partial().parse(userNuevo)
+    if (datosValidados.password) {
+      const passwordHasheada = await bcrypt.hash(datosValidados.password, 10);
+      datosValidados.password = passwordHasheada;
+    }
+
 
     const index = users.findIndex(user => user.id === Number(id));
     if(index === -1){

@@ -38,10 +38,10 @@ async function registrar(req,res) {
         }
 
         //verificamos si el email esta usado
-        const busquedaPorEmail = await getUserEmail(user.email)
-        if(busquedaPorEmail){
-            return res.status(400).json({message:"El email ya esta usado"})
-        }
+        // const busquedaPorEmail = await getUserEmail(user.email)
+        // if(busquedaPorEmail){
+        //     return res.status(400).json({message:"El email ya esta usado"})
+        // }
 
         //busco persona para ver si existe
         const findPersona = await getPersonaFisicaDni(persona.dni)
@@ -50,7 +50,7 @@ async function registrar(req,res) {
             const creacionPersona = await postPersonaFisica(persona)
         }
         const response = await postUser(user)
-        return res.status(200).json({message:"Usuario registrado con exito"})
+        return res.status(201).json({message:"Usuario registrado con exito"})
     }catch(error){
         if (error instanceof ZodError) {
         return res.status(400).json({

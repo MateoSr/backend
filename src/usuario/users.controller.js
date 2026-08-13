@@ -59,6 +59,11 @@ async function crearUser(req,res) {
     try{
         const user = req.body
         const resultado = await postUser(user)
+        if(!resultado){
+            return res.status(401).json({
+                error: 'Erorr'
+            })
+        }
         return res.status(201).json({
             message: 'Usuario creado correctamente',
             user: resultado
