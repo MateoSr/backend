@@ -4,8 +4,8 @@
   "description": "Repositorio dedicado al backend del trabajo practico de Desarrollo de Software",
   "main": "src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon src/index.js"
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js"
   },
   "repository": {
     "type": "git",
@@ -20,9 +20,15 @@
   },
   "homepage": "https://github.com/MateoSr/backend#readme",
   "devDependencies": {
-    "@types/node": "^26.1.1",
+    "@types/bcrypt": "^6.0.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/morgan": "^1.9.10",
+    "@types/node": "^26.2.0",
     "dotenv": "^17.4.2",
-    "prisma": "^7.8.0"
+    "prisma": "^7.8.0",
+    "tsx": "^4.23.12",
+    "typescript": "^7.0.2"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",
