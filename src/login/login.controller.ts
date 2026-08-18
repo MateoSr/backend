@@ -2,6 +2,7 @@ import {postUser, validarUser,getUserEmail} from '../usuario/users.service.js'
 import {getPersonaFisicaDni,postPersonaFisica} from '../personaFisica/personaFisica.service.js'
 import { ZodError } from 'zod';
 import { type Request, type Response } from "express";
+import { error } from 'node:console';
 
 
 
@@ -62,4 +63,18 @@ async function registrar(req: Request, res: Response) {
     
 }
 
-export  {iniciarSesion, registrar}
+async function olvidePassword(req:Request,res:Response) {
+    try{
+        const {email} = req.body
+        // console.log(email)
+        const response = await getUserEmail(String(email))
+        if(!response){
+            return res.status(404).json({message: "Email no encontrado"})
+        }
+    }catch(error:any){
+        return res.status(400).json({error:error.message})
+    }
+    
+}
+
+export  {iniciarSesion, registrar, olvidePassword}
