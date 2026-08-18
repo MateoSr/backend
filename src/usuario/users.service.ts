@@ -12,7 +12,7 @@ export interface UserSalida extends User {
 const users: UserSalida[] = [
   {
     "id":1,
-    "email": "lucas@example.com",
+    "email": "laulagostina@gmail.com",
     "telefono": "3415123456",
     "password": "Password123!",
     "id_tipoUsuario": 1,
@@ -28,11 +28,19 @@ const users: UserSalida[] = [
   },
   {
     "id":3,
-    "email": "mateo@example.com",
+    "email": "mateoondateguifacu@gmail.com",
     "telefono": "3413987654",
     "password": "SuperSecretPass8",
     "id_tipoUsuario": 3,
     "cuit": "89023190812"
+  },
+  {
+    "id":4,
+    "email": "surjakmirko@gmail.com",
+    "telefono": "3471456789",
+    "password": "MiClaveSegura2026",
+    "id_tipoUsuario": 2,
+    "dni": "46881434"
   }
 ]
 
@@ -98,6 +106,17 @@ async function putUser(id:number,userNuevo:Partial<User>): Promise<UserSalida | 
     return userCambiado
 }
 
+async function patchUserPassword(id:number,password:string):Promise<boolean>{
+    const user = users.find(user => user.id === id) 
+    if(!user){
+      return false
+    }
+    const passwordSegura = await bcrypt.hash(password, 10);
+    user.password = passwordSegura
+    return true
+  
+}
+
 async function deleteUser(id:number): Promise<boolean> {
     const index = users.findIndex(user => user.id === id);
     if(index === -1){
@@ -114,5 +133,6 @@ export {
     putUser,
     deleteUser,
     validarUser,
-    getUserEmail
+    getUserEmail,
+    patchUserPassword
 }

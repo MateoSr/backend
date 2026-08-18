@@ -10,7 +10,7 @@ import personaFisicaRouter from "./personaFisica/personaFisica.routes.js";
 import turnoRouter from "./turno/turno.routes.js";
 import tipoTurnoRouter from "./tipoTurno/tipoTurno.routes.js";
 import tipoCanchaRouter from "./tipoCancha/tipoCancha.routes.js";
-import loginRouter from "./login/login.routes.js";
+import loginRouter from "./auth/auth.routes.js";
 import cors from "cors";
 import morgan from "morgan";
 

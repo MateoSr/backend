@@ -2,7 +2,7 @@ import {postUser, validarUser,getUserEmail} from '../usuario/users.service.js'
 import {getPersonaFisicaDni,postPersonaFisica} from '../personaFisica/personaFisica.service.js'
 import { ZodError } from 'zod';
 import { type Request, type Response } from "express";
-import { error } from 'node:console';
+import {enviarEmailResetPassword, resetPassword} from './auth.service.js' 
 
 
 
@@ -66,15 +66,42 @@ async function registrar(req: Request, res: Response) {
 async function olvidePassword(req:Request,res:Response) {
     try{
         const {email} = req.body
+        if(!email){
+            return res.status(400).json({message:"Email es requerido"})
+        }
         // console.log(email)
         const response = await getUserEmail(String(email))
         if(!response){
             return res.status(404).json({message: "Email no encontrado"})
         }
+
+        await enviarEmailResetPassword(email,response.id)
+        return res.status(200).json({ message: "Se ha enviado un correo con las instrucciones para restablecer tu contraseña" })
+
+
     }catch(error:any){
-        return res.status(400).json({error:error.message})
+        return res.status(500).json({error:error.message})
     }
     
 }
 
-export  {iniciarSesion, registrar, olvidePassword}
+async function resetearPassword(req:Request,res:Response) {
+    try{
+        const {id,password} = req.body
+        if (!id || !password) {
+            return res.status(400).json({ message: "El ID y la nueva contraseña son requeridos." });
+            }
+        if(password.trim().length < 8){
+            return res.status(400).json({ message: "La contraseña es muy corta" });
+        }
+        const respuesta = await resetPassword(Number(id),String(password))
+        if(!respuesta){
+            return res.status(400).json({message:"Usuario no encontrado"})
+        }
+        return res.status(200).json({message:"Usuario actualizado"})
+    }catch(error:any){
+        return res.status(500).json({message:"Error al actualizar"})
+    }
+}
+ 
+export  {iniciarSesion, registrar, olvidePassword,resetearPassword}
