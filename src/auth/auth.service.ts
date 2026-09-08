@@ -22,7 +22,7 @@ await brevo.transactionalEmails.sendTransacEmail({
     ],
     htmlContent: `
       <div style="font-family: Arial, sans-serif; padding: 20px;">
-        <h1>LAUTI COME GATOS</h1>
+        <h1>TurnoLibre</h1>
         <h2>Restablecimiento de contraseña</h2>
         <p>Has solicitado restablecer tu contraseña. Haz clic en el siguiente enlace para continuar:</p>
         <a href="${resetUrl}" 
