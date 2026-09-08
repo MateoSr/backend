@@ -2,10 +2,13 @@ import { prisma } from "../shared/prisma.js";
 import { type User, userSchema } from "./users.schema.js";
 import bcrypt from "bcryptjs";
 
+export interface UserSalida extends User {
+  id: number;
 
+}
 
 // Reemplazamos la interfaz local con el tipo retornado por Prisma o la adaptamos a tus necesidades
-export type UserSalida = Awaited<ReturnType<typeof prisma.usuario.findUniqueOrThrow>>;
+//export type UserSalida = Awaited<ReturnType<typeof prisma.usuario.findUniqueOrThrow>>;
 
 async function getUserId(id: number) {
   const user = await prisma.usuario.findUnique({

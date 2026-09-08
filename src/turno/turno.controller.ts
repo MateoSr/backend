@@ -5,7 +5,7 @@ async function obtenerTurnos(req:Request,res:Response) {
     const {id_cliente} = req.query;
     try{
         const idClienteNum = id_cliente ? Number(id_cliente) : undefined;
-        const turnos = await getAllTurnos({id_cliente: idClienteNum })
+        const turnos = await getAllTurnos({clienteId: idClienteNum })
         if(turnos.length === 0){
             return res.status(404).json({message:"No hay turnos"})
         }

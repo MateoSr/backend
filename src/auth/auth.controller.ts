@@ -25,11 +25,11 @@ async function registrar(req: Request, res: Response) {
     try{
         const {email,password,telefono,dni,nombre,apellido,fechaNacimiento} =req.body
         const user = {
-            dni:dni,
+            personaFisicaDni:dni,
             email:email,
             password:password,
             telefono:telefono,
-            id_tipoUsuario:2
+            tipoUsuarioId:2
         }
 
         const persona ={

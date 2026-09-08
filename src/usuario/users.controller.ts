@@ -33,7 +33,7 @@ async function obtenerUserCompleto(req:Request,res:Response) {
         if(!user){
             return res.status(404).json({message:"No se encontro el usuario"})
         }
-        const personaFisica = await getPersonaFisicaDni(user.dni)
+        const personaFisica = await getPersonaFisicaDni(user.personaFisicaDni)
         if(!personaFisica){
             return res.status(404).json({message:"No se encontro la persona"})
         }
