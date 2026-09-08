@@ -1,5 +1,5 @@
 import {getComplejoId,getAllComplejos,postComplejo,putComplejo,deleteComplejo} from './complejos.service.js'
-import { ZodError } from 'zod'; //modulo que permimte mostrar los errores de tipos de datos
+import { ZodError } from 'zod';
 import {type Request, type Response} from 'express'
 async function obtenerComplejos(req: Request, res: Response) {
     try{
@@ -83,9 +83,9 @@ async function borrarComplejo(req: Request, res: Response) {
 }
 
 export {
-  obtenerComplejo,
-  obtenerComplejos,
-  crearComplejo,
-  modificarComplejo,
-  borrarComplejo
+    obtenerComplejo,
+    obtenerComplejos,
+    crearComplejo,
+    modificarComplejo,
+    borrarComplejo
 };

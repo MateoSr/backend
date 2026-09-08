@@ -1,37 +1,17 @@
-export interface TipoCancha {
-    id: number;
-    deporte: string;
-}
+import { prisma } from '../shared/prisma.js';
+import { PrismaClient, type TipoCancha } from '@prisma/client';
 
-const tipoCanchas: TipoCancha[] = [
-    {
-    "id": 1,
-    "deporte": "Futbol 5"
-},
-    {
-    "id": 2,
-    "deporte": "Futbol 11"
-},
-    {
-    "id": 3,
-    "deporte": "Basquet"
-},
-    {
-    "id": 4,
-    "deporte": "Tenis"
-}
-]
-
-async function getTipoCanchaId(id:number): Promise<TipoCancha | null> {
-    const tipoCancha = tipoCanchas.find(c => c.id == id);
-    return tipoCancha || null
+async function getTipoCanchaId(id: number): Promise<TipoCancha | null> {
+    return await prisma.tipoCancha.findUnique({
+        where: { id }
+    });
 }
 
 async function getAllTipoCanchas(): Promise<TipoCancha[]> {
-    return tipoCanchas    
+    return await prisma.tipoCancha.findMany();
 }
 
-export{
+export {
     getTipoCanchaId,
     getAllTipoCanchas
 }

@@ -1,52 +1,64 @@
-import { personaFisicaSchema,type PersonaFisica } from "./personaFisica.schema.js";
+import { type PersonaFisica as PersonaFisicaPrisma } from '@prisma/client';
+import { personaFisicaSchema, type PersonaFisica } from "./personaFisica.schema.js";
+import {prisma} from '../shared/prisma.js'; 
 
-const personasFisicas: PersonaFisica[] = [
-  {nombre: "Lucas", apellido: "Perez", dni: "12345678", fechaNacimiento: "2000-01-01"},
-  {nombre: "Sofia", apellido: "Garcia", dni: "87654321", fechaNacimiento: "2000-01-01"},
-  {nombre: "Mateo", apellido: "Martinez", dni: "33444555", fechaNacimiento: "2000-01-01"}
-];
-
-async function getPersonaFisicaDni(dni: string): Promise<PersonaFisica|null> {
-    const personaFisica = personasFisicas.find(personaFisica => personaFisica.dni === dni);
-    return personaFisica || null
+async function getPersonaFisicaDni(dni: string): Promise<PersonaFisicaPrisma | null> {
+    return await prisma.personaFisica.findUnique({
+        where: { dni }
+    });
 }
 
-async function postPersonaFisica(personaFisica: PersonaFisica): Promise<PersonaFisica> {
-    const datosValidados = personaFisicaSchema.parse(personaFisica)
-    personasFisicas.push(datosValidados)
-    return datosValidados
+async function postPersonaFisica(personaFisica: PersonaFisica): Promise<PersonaFisicaPrisma> {
+    const datosValidados = personaFisicaSchema.parse(personaFisica);
+
+    const nuevaPersona = await prisma.personaFisica.create({
+        data: datosValidados
+    });
+
+    return nuevaPersona;
 }
 
-async function getAllPersonasFisicas(): Promise<PersonaFisica[]|null> {
-    return personasFisicas || null
+async function getAllPersonasFisicas(): Promise<PersonaFisicaPrisma[]> {
+    return await prisma.personaFisica.findMany();
 }
 
-async function putPersonaFisica(dni: string, personaFisicaNueva: Partial<PersonaFisica>): Promise<PersonaFisica|null> {
-    const datosValidados = personaFisicaSchema.partial().parse(personaFisicaNueva)
+async function putPersonaFisica(dni: string, personaFisicaNueva: Partial<PersonaFisica>): Promise<PersonaFisicaPrisma | null> {
+    const datosValidados = personaFisicaSchema.partial().parse(personaFisicaNueva);
 
-    const index = personasFisicas.findIndex(personaFisica => personaFisica.dni ===  dni);
-    if(index === -1){
-      return null
+    try {
+        const personaModificada = await prisma.personaFisica.update({
+            where: { dni },
+            data: datosValidados
+        });
+        
+        return personaModificada;
+    } catch (error: any) {
+        if (error.code === 'P2025') {
+            return null; // Retorna null si el DNI no existe en la base
+        }
+        throw error;
     }
-    personasFisicas[index] = {...personasFisicas[index], ...datosValidados,dni: dni};
-
-    const personaFisicaCambiada = personasFisicas[index]
-    return personaFisicaCambiada
 }
 
 async function deletePersonaFisica(dni: string): Promise<boolean> {
-    const index = personasFisicas.findIndex(personaFisica => personaFisica.dni === dni);
-    if(index === -1){
-      return false
+    try {
+        await prisma.personaFisica.delete({
+            where: { dni }
+        });
+        
+        return true;
+    } catch (error: any) {
+        if (error.code === 'P2025') {
+            return false; // Retorna false si el DNI no existe en la base
+        }
+        throw error;
     }
-    personasFisicas.splice(index,1)
-    return true
 }
 
 export {
-  getPersonaFisicaDni,
-  postPersonaFisica,
-  getAllPersonasFisicas,
-  putPersonaFisica,
-  deletePersonaFisica
+    getPersonaFisicaDni,
+    postPersonaFisica,
+    getAllPersonasFisicas,
+    putPersonaFisica,
+    deletePersonaFisica
 }
