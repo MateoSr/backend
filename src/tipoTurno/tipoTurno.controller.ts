@@ -1,5 +1,5 @@
-import {getTipoTurnoId,getAllTipoTurnos} from './tipoTurno.service.js'
 import {type Request,type Response} from 'express'
+import {getTipoTurnoId,getAllTipoTurnos} from './tipoTurno.service.js'
 
 async function obtenerTipoTurnos(req: Request, res: Response) {
     try{
@@ -8,10 +8,9 @@ async function obtenerTipoTurnos(req: Request, res: Response) {
             return res.status(404).json({message:"No hay tipos de turno"})
         }
         return res.status(200).json(tipoTurnos)
-        }catch(error:any)
-        {
+    } catch(error:any) {
         return res.status(400).json({error:error.message})
-        }
+    }
 }
 
 async function obtenerTipoTurno(req: Request, res: Response) {
@@ -22,10 +21,9 @@ async function obtenerTipoTurno(req: Request, res: Response) {
             return res.status(404).json({message:"No se encontro el tipo de turno"})
         }
         return res.status(200).json(tipoTurno)
-        }catch(error:any)
-        {
+    } catch(error:any) {
         return res.status(400).json({error:error.message})
-        }
+    }
 }
 
 export {

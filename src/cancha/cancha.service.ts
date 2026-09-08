@@ -1,70 +1,71 @@
-import { canchaSchema , type Cancha} from "./cancha.schema.js";
+import { prisma } from '../shared/prisma.js'
+import { canchaSchema } from './cancha.schema.js'
 
-const canchas: Cancha[] = [
-  {
-    "nro": 1,
-    "id_tipo_cancha": 1,
-    "id_complejo": 1,
-  },
-  {
-    "nro": 2,
-    "id_tipo_cancha": 1,
-    "id_complejo": 1,
-  },
-  {
-    "nro": 3,
-    "id_tipo_cancha": 2,
-    "id_complejo": 1,  
-  },
-  {
-    "nro": 1,
-    "id_tipo_cancha": 4,
-    "id_complejo": 2,  }
-]
-
-async function getCanchaNro(nro: number, id_complejo: number): Promise<Cancha | null> {
-    const cancha = canchas.find(c => 
-      c.nro === nro 
-      && c.id_complejo === id_complejo);
-    return cancha || null
+async function getCanchaNro(nro: number, id_complejo: number) {
+    return await prisma.cancha.findFirst({
+        where: { 
+            complejo: {
+                id: id_complejo
+            },
+            nro: nro 
+        }
+    })
 }
 
-async function postCancha(cancha: Omit<Cancha, 'id_complejo'>, id_complejo: number): Promise<Cancha> {
-    
-    //Zod me permite valdiar los tipos de datos segun el schema y que esten los obligatorios
-    const datosValidados = canchaSchema.parse(cancha)
-    const nuevaCancha = {...datosValidados, id_complejo: id_complejo};
+async function postCancha(canchaData: unknown, id_complejo: number) {
+    const datosValidados = canchaSchema.parse(canchaData);
 
-    // 4. Guardamos en el arreglo
-    canchas.push(nuevaCancha);
-    return nuevaCancha
-}
-async function getAllCanchas(id_complejo: number): Promise<Cancha[]> {
-    const canchasFiltradas = canchas.filter(c => c.id_complejo === id_complejo);
-    return canchasFiltradas    
+    const nuevaCancha = await prisma.cancha.create({
+        data: {
+            tipoCanchaId: datosValidados.tipoCanchaId,
+            complejoId: id_complejo,
+            nro: datosValidados.nro
+        }
+    });
+    return nuevaCancha;
 }
 
-async function putCancha(nro: number, id_complejo: number, canchaNueva: Partial<Cancha>): Promise<Cancha | null> {
-    //convierte todos los campos en opcional pero valida que concuerden los tipos
-    const datosValidados = canchaSchema.partial().parse(canchaNueva)
+async function getAllCanchas(id_complejo: number) {
+    return await prisma.cancha.findMany({
+        where: { complejoId: id_complejo },
+        include: { tipoCancha: true }
+    });
+}
 
-    const index = canchas.findIndex(c => c.id_complejo === id_complejo && c.nro === nro);
-    if(index === -1){
-      return null
+async function putCancha(nro: number, id_complejo: number, canchaNueva: unknown) {
+    const datosValidados = canchaSchema.partial().parse(canchaNueva);
+    try {
+        const canchaActualizada = await prisma.cancha.update({
+            where: {
+                complejoId_nro: {
+                    complejoId: id_complejo,
+                    nro: nro
+                }
+            },
+            data: {
+                tipoCanchaId: datosValidados.tipoCanchaId
+            }
+        });
+        return canchaActualizada;
+    } catch (error) {
+        return null;
     }
-    canchas[index] = {...canchas[index], ...datosValidados,nro: nro, id_complejo: id_complejo};
-
-    const canchaCambiado = canchas[index]
-    return canchaCambiado
 }
 
 async function deleteCancha(nro: number, id_complejo: number): Promise<boolean> {
-    const index = canchas.findIndex(c => c.id_complejo === id_complejo && c.nro === nro);
-    if(index === -1){
-      return false
+    try {
+        await prisma.cancha.delete({
+            where: {
+                complejoId_nro: {
+                    complejoId: id_complejo,
+                    nro: nro
+                }
+            }
+        });
+        return true;
+    } catch (error) {
+        return false;
     }
-    canchas.splice(index,1)
-    return true
 }
 
 export {
