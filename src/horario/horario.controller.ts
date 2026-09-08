@@ -12,48 +12,41 @@ async function obtenerHorarios(req: Request, res: Response) {
             return res.status(404).json({message: "NO hay horarios cargados para ese complejo"})
         }
         return res.status(200).json(horarios)
-    }catch(error:any)
-        {
+    }catch(error:any) {
         return res.status(400).json({error:error.message})
         }
     
 }
 
 async function obtenerHorario(req: Request, res: Response) {
-    try{
+    try {
         const {id_complejo,num_dia} = req.params
         const horario = await getHorario(Number(id_complejo), Number(num_dia))
         if(!horario){
             return res.status(404).json({message: "NO hay horarios cargados para ese dia"})
         }
         return res.status(200).json(horario)  
-    }catch(error:any)
-        {
+    } catch(error:any) {
         return res.status(400).json({error:error.message})
         }
-    
-    
 }
 
 async function crearHorario(req: Request, res: Response) {
     try{
-        //ver
         const {id_complejo} = req.params
         const horario = req.body
-        const resultado = await postHorario(horario)
+        const resultado = await postHorario(horario, Number(id_complejo))
         return res.status(201).json({
             message: 'Horario creado correctamente',
             horario: horario
         })
-    }catch(error:any)
-        {
+    }catch(error:any) {
         if (error instanceof ZodError) {
         return res.status(400).json({
             message: "Error de validación en los datos ingresados",})
         }
         return res.status(400).json({error:error.message})
         }
-    
 }
 
 async function modificarHorario(req: Request, res: Response) {
@@ -68,17 +61,13 @@ async function modificarHorario(req: Request, res: Response) {
             message: 'Horario modificado correctamente',
             horario: horarioNuevo
         })
-
-    }catch(error:any)
-    {
+    }catch(error:any) {
         if (error instanceof ZodError) {
         return res.status(400).json({
             message: "Error de validación en los datos ingresados",})
         }
         return res.status(400).json({error:error.message})
         }
-    
-    
 }
 
 async function borrarHorario(req: Request, res: Response) {
@@ -89,13 +78,9 @@ async function borrarHorario(req: Request, res: Response) {
             return res.status(404).json({message:"No se encontro el horario"})
         }
         return res.status(200).json({message:"Horario borrado correctamente"})
-
-    }catch(error:any)
-        {
+    }catch(error:any) {
         return res.status(400).json({error:error.message})
         }
-    
-    
 }
 
 export {
