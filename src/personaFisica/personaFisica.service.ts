@@ -9,12 +9,14 @@ async function getPersonaFisicaDni(dni: string): Promise<PersonaFisicaPrisma | n
 }
 
 async function postPersonaFisica(personaFisica: PersonaFisica): Promise<PersonaFisicaPrisma> {
+    
     const datosValidados = personaFisicaSchema.parse(personaFisica);
-
     const nuevaPersona = await prisma.personaFisica.create({
-        data: datosValidados
-    });
-
+    data: {
+    ...datosValidados,
+    fechaNacimiento: new Date(datosValidados.fechaNacimiento), // Garantiza que sea un objeto Date
+  },
+});
     return nuevaPersona;
 }
 

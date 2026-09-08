@@ -42,17 +42,17 @@ async function postUser(user: User) {
 
   // Validamos con Zod
   const datosValidados = userSchema.parse(user);
+  
   const contraSegura = await bcrypt.hash(datosValidados.password, 10);
-
   // Mapeamos las propiedades al modelo de Prisma (usuario)
   const nuevoUsuario = await prisma.usuario.create({
     data: {
       email: datosValidados.email,
       telefono: datosValidados.telefono ?? null,
       password: contraSegura,
-      tipoUsuarioId: (datosValidados as any).id_tipoUsuario ?? (datosValidados as any).idTipoUsuario,
-      personaFisicaDni: (datosValidados as any).dni ?? null,
-      personaJuridicaCuit: (datosValidados as any).cuit ?? null
+      tipoUsuarioId: (datosValidados as any).tipoUsuarioId ?? (datosValidados as any).tipoUsuarioId,
+      personaFisicaDni: (datosValidados as any).personaFisicaDni ?? null,
+      personaJuridicaCuit: (datosValidados as any).personaJuridicaCuit ?? null
     },
   });
 

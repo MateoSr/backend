@@ -24,6 +24,7 @@ async function iniciarSesion(req: Request, res: Response) {
 async function registrar(req: Request, res: Response) {
     try{
         const {email,password,telefono,dni,nombre,apellido,fechaNacimiento} =req.body
+      
         const user = {
             personaFisicaDni:dni,
             email:email,
@@ -31,7 +32,7 @@ async function registrar(req: Request, res: Response) {
             telefono:telefono,
             tipoUsuarioId:2
         }
-
+     
         const persona ={
             dni:dni,
             nombre:nombre,
@@ -52,6 +53,7 @@ async function registrar(req: Request, res: Response) {
             const creacionPersona = await postPersonaFisica(persona)
         }
         const response = await postUser(user)
+      
         return res.status(201).json({message:"Usuario registrado con exito"})
     }catch(error:any){
         if (error instanceof ZodError) {
