@@ -79,6 +79,7 @@ model Complejo {
   id          Int       @id @default(autoincrement())
   direccion   String
   nombre      String
+  imagenUrl   String?
   localidadId Int
   encargadoId Int       @unique // Único para la relación 1 a 1
   duenoId     Int
