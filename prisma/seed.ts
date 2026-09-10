@@ -1,12 +1,10 @@
 import { prisma } from '../src/shared/prisma.js';
 import 'dotenv/config';
 
-
-
 async function main() {
   console.log("Iniciando la carga de datos iniciales...");
 
-  // 1. Tipos de Usuario
+  //Tipos de Usuario
   await prisma.tipoUsuario.createMany({
     data: [
       { id: 1, descripcion: "Administrador" },
@@ -17,7 +15,7 @@ async function main() {
     skipDuplicates: true,
   });
 
-  // 2. Tipos de Cancha
+  //Tipos de Cancha
   await prisma.tipoCancha.createMany({
     data: [
       { id: 1, deporte: "Futbol 11" },
@@ -34,7 +32,7 @@ async function main() {
     skipDuplicates: true,
   });
 
-  // 3. Tipos de Turno
+  //Tipos de Turno
   await prisma.tipoTurno.createMany({
     data: [
       { id: 1, nombre: "Normal", descripcion: "Turno basico" },
@@ -44,7 +42,7 @@ async function main() {
     skipDuplicates: true,
   });
 
-  // 4. Provincias
+  //Provincias
   await prisma.provincia.createMany({
     data: [
       { id: 1, nombre: "Buenos Aires" },
@@ -75,7 +73,7 @@ async function main() {
     skipDuplicates: true,
   });
 
-  // 5. Localidades
+  //Localidades
   await prisma.localidad.createMany({
     data: [
       { id: 1, nombre: "La Plata", codigoPostal: "B1900", provinciaId: 1 },
@@ -225,13 +223,86 @@ async function main() {
     skipDuplicates: true,
   });
 
+  //Dueño
+  const dueno = await prisma.usuario.upsert({
+    where: { email: "dueno@turnolibre.com" },
+    update: {},
+    create: {
+      id: 1,
+      email: "dueno@turnolibre.com",
+      password: "password123",
+      telefono: "1234567890",
+      tipoUsuarioId: 4
+    }
+  });
+
+  //Complejos
+  await prisma.complejo.createMany({
+    data: [
+    {
+      id: 1,
+      nombre: "Al Angulo",
+      direccion: "Av. Pellegrini 3200",
+      localidadId: 102,
+      duenoId: dueno.id,
+      encargadoId: 1,
+      imagenUrl: "../../frontend/mi-primer-react/src/assets/foto-complejo-AlAngulo.jpg",
+    },
+    {
+      id: 2,
+      nombre: "Buena Bandeja",
+      direccion: "Bulevar Oroño 1450",
+      localidadId: 102,
+      duenoId: dueno.id,
+      encargadoId: 2,
+      imagenUrl: "../../frontend/mi-primer-react/src/assets/foto-complejo-BuenaBandeja.jpg",
+    },
+    {
+      id: 3,
+      nombre: "De Volea",
+      direccion: "Av. Alberdi 850",
+      localidadId: 102,
+      duenoId: dueno.id,
+      encargadoId: 3,
+      imagenUrl: "../../frontend/mi-primer-react/src/assets/foto-complejo-DeVolea.jpg",
+    },
+    {
+      id: 4,
+      nombre: "El Ace",
+      direccion: "San Martín 2100",
+      localidadId: 102,
+      duenoId: dueno.id,
+      encargadoId: 1,
+      imagenUrl: "../../frontend/mi-primer-react/src/assets/foto-complejo-ElAce.jpg",
+    },
+    {
+      id: 5,
+      nombre: "La Volcada",
+      direccion: "Córdoba 4500",
+      localidadId: 102,
+      duenoId: dueno.id,
+      encargadoId: 4,
+      imagenUrl: "../../frontend/mi-primer-react/src/assets/foto-complejo-LaVolcada.jpg",
+    },
+    {
+      id: 6,
+      nombre: "Marty Supreme",
+      direccion: "Av. Francia 1200",
+      localidadId: 102,
+      duenoId: dueno.id,
+      encargadoId: 5,
+      imagenUrl: "../../frontend/mi-primer-react/src/assets/foto-complejo-MartySupreme.jpg",
+    },
+  ],
+    skipDuplicates: true,
+  });
+
   console.log("¡Precarga de datos completada con éxito!");
 }
 
 main()
   .catch((e) => {
     console.error("Error al ejecutar el seed:", e);
-    
   })
   .finally(async () => {
     await prisma.$disconnect();
