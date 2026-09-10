@@ -11,6 +11,7 @@ import turnoRouter from "./turno/turno.routes.js";
 import tipoTurnoRouter from "./tipoTurno/tipoTurno.routes.js";
 import tipoCanchaRouter from "./tipoCancha/tipoCancha.routes.js";
 import loginRouter from "./auth/auth.routes.js";
+import contactoRouter from "./contacto/contacto.routes.js";
 import cors from "cors";
 import morgan from "morgan";
 
@@ -40,6 +41,7 @@ app.use("/api",loginRouter)
 app.use("/api/turnos",turnoRouter)
 app.use("/api/tipoTurno",tipoTurnoRouter)
 app.use("/api/tipoCancha",tipoCanchaRouter)
+app.use("/api/contacto",contactoRouter)
 
 app.get("/", (req, res) => {
   res.send("Hello, World!");

@@ -88,7 +88,7 @@ async function buscarComplejosDisponibles(filtros: BusquedaFiltros): Promise<Com
             },
           },
           // 3. Que NO tengan un turno ocupado ese día a esa hora
-          turnos: {
+          turno: {
             none: {
               fecha: fechaHoraInicio,
               horaInicio: hora,
