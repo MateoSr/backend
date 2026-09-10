@@ -1,5 +1,7 @@
 import {BrevoClient} from '@getbrevo/brevo'
-import {patchUserPassword} from '../usuario/users.service.js'
+import {patchUserPassword,getUserEmail} from '../usuario/users.service.js'
+import bcrypt from "bcryptjs";
+import { emitirToken } from '../shared/jwt.js';
 
 const brevo = new BrevoClient({
   apiKey: process.env.BREVO_API_KEY || '',
@@ -41,4 +43,19 @@ export async function resetPassword(id:number, password:string):Promise<boolean>
     //traBAJAR con el tokem cuando haya
     const response = await patchUserPassword(id,password)
     return response
+}
+
+export async function login(email: string, password: string): Promise<{token: string} | null> {
+  const user = await getUserEmail(email);
+  if (!user) throw new Error("Credenciales inválidas");
+
+
+  const coincide = await bcrypt.compare(password, user.password);
+  if (!coincide) throw new Error("Credenciales inválidas");
+
+  
+  const token = emitirToken({ userId: user.id, email: user.email, rol: user.tipoUsuario.descripcion });
+  return {
+    token
+  };
 }

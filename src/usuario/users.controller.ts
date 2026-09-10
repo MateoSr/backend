@@ -28,12 +28,19 @@ async function obtenerUser(req:Request,res:Response) {
 
 async function obtenerUserCompleto(req:Request,res:Response) {
     try{
-        const {id} = req.params
-        const user = await getUserId(Number(id))
+
+        const userId = req.usuario?.userId; 
+        console.log("ID del usuario autenticado:", userId);
+
+        if (!userId) {
+            return res.status(401).json({ message: "Usuario no autenticado en la petición" });
+        }
+
+        const user = await getUserId(Number(userId))
         if(!user){
             return res.status(404).json({message:"No se encontro el usuario"})
         }
-        const personaFisica = await getPersonaFisicaDni(user.personaFisicaDni)
+        const personaFisica = await getPersonaFisicaDni(user.personaFisicaDni!)
         if(!personaFisica){
             return res.status(404).json({message:"No se encontro la persona"})
         }

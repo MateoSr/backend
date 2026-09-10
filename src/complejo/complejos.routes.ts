@@ -7,6 +7,7 @@ import {obtenerPrecio,obtenerPrecios,crearPrecio} from "../precio/precio.control
 const complejoRouter = Router()
 
 
+
 //rutas propias de complejo
 complejoRouter.get("/",obtenerComplejos)
 complejoRouter.get("/:id",obtenerComplejo)

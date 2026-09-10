@@ -12,7 +12,10 @@ export interface UserSalida extends User {
 
 async function getUserId(id: number) {
   const user = await prisma.usuario.findUnique({
-    where: { id }
+    where: { id },
+    include: {
+      tipoUsuario: true 
+    }
   });
   return user;
 }
@@ -20,18 +23,14 @@ async function getUserId(id: number) {
 // Busca un usuario por su email
 async function getUserEmail(email: string) {
   const user = await prisma.usuario.findFirst({
-    where: { email }
+    where: { email },
+    include: {
+      tipoUsuario: true 
+    }
   });
   return user;
 }
 
-async function validarUser(email: string, pass: string): Promise<boolean> {
-  const user = await getUserEmail(email);
-  if (!user) {
-    return false;
-  }
-  return await bcrypt.compare(pass, user.password);
-}
 
 async function postUser(user: User) {
   // Verificamos si el email ya existe en la DB
@@ -123,7 +122,6 @@ export {
   getAllUsers,
   putUser,
   deleteUser,
-  validarUser,
   getUserEmail,
   patchUserPassword,
 };

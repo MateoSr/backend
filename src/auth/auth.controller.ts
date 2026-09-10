@@ -1,25 +1,27 @@
-import {postUser, validarUser,getUserEmail} from '../usuario/users.service.js'
+import {postUser,getUserEmail} from '../usuario/users.service.js'
 import {getPersonaFisicaDni,postPersonaFisica} from '../personaFisica/personaFisica.service.js'
 import { ZodError } from 'zod';
 import { type Request, type Response } from "express";
-import {enviarEmailResetPassword, resetPassword} from './auth.service.js' 
+import {enviarEmailResetPassword, login, resetPassword} from './auth.service.js' 
+
+
 
 
 
 async function iniciarSesion(req: Request, res: Response) {
-    try{
-        const {email,password} = req.body
-        const response = await validarUser(String(email),String(password))
-        if(!response){
-            return res.status(404).json({message:"Credenciales Invalidas"})
-        }
-        return res.status(200).json({message:"Login exitoso"})
-
+    try {
+        const { email, password } = req.body;
+        const token = await login(String(email), String(password));
+        console.log(token)
+        return res.json({
+            message:"Login exitoso",
+            token: token
+        })
     }catch(error:any){
-        return res.status(400).json({error:error.message})
+        res.status(400).json({error:error.message})
     }
-    
 }
+    
 
 async function registrar(req: Request, res: Response) {
     try{
