@@ -52,7 +52,7 @@ async function obtenerUserCompleto(req:Request,res:Response) {
             "email":user.email,
             // "password":user.password,
             "telefono":user.telefono,
-            "fechaNacimiento":personaFisica.fechaNacimiento
+            fechaNacimiento: personaFisica.fechaNacimiento ? new Date(personaFisica.fechaNacimiento).toISOString().split('T')[0] : ""
         }
         return res.status(200).json(respuesta)
 
@@ -89,9 +89,15 @@ async function crearUser(req:Request,res:Response) {
 
 async function modificarUser(req:Request,res:Response) {
     try{
-        const {id} = req.params
+        const userId = req.usuario?.userId; 
+        console.log("ID del usuario autenticado:", userId);
+
+        if (!userId) {
+            return res.status(401).json({ message: "Usuario no autenticado en la petición" });
+        }
+        
         const userModificado = req.body
-        const resultado = await putUser(Number(id),userModificado)
+        const resultado = await putUser(Number(userId),userModificado)
         if(!resultado){
             return res.status(404).json({message:"No se encontro el usuario"})
         }
@@ -121,21 +127,6 @@ async function borrarUser(req:Request,res:Response) {
         }
 }
 
-async function modificarUserCompleto(req:Request,res:Response) {
-    try{
-        const {id} = req.params
-        const datosModificados = req.body
-        console.log(datosModificados)
-        return res.status(200).json({
-            message: 'Usuario modificado correctamente',
-            user: datosModificados
-        })
-
-    }catch(error:any)
-    {
-        return res.status(400).json({error:error.message})
-    }
-}
 
 
 
@@ -145,6 +136,5 @@ export {
   crearUser,
   borrarUser,
   modificarUser,
-  modificarUserCompleto,
   obtenerUserCompleto
 };

@@ -1,11 +1,14 @@
 import { prisma } from "../shared/prisma.js";
-import { type User, userSchema } from "./users.schema.js";
+import { type User,type UserUpdate ,userSchema } from "./users.schema.js";
 import bcrypt from "bcryptjs";
+import {putPersonaFisica} from "../personaFisica/personaFisica.service.js";
 
 export interface UserSalida extends User {
   id: number;
 
 }
+
+
 
 // Reemplazamos la interfaz local con el tipo retornado por Prisma o la adaptamos a tus necesidades
 //export type UserSalida = Awaited<ReturnType<typeof prisma.usuario.findUniqueOrThrow>>;
@@ -59,37 +62,35 @@ async function postUser(user: User) {
 }
 
 async function getAllUsers() {
-  return await prisma.usuario.findMany()
+  return await prisma.usuario.findMany({include: { tipoUsuario: true }});
   
 }
 
-async function putUser(id: number, userNuevo: Partial<User>) {
-  const datosValidados = userSchema.partial().parse(userNuevo);
+async function putUser(id: number, data: Partial<UserUpdate>) {
 
-  // Si envían una contraseña nueva, la hasheamos
-  if (datosValidados.password) {
-    datosValidados.password = await bcrypt.hash(datosValidados.password, 10);
-  }
-
-  // Mapeamos los campos a actualizar
-  const updateData: Record<string, any> = { ...datosValidados };
-
-  if ((datosValidados as any).id_tipoUsuario) {
-    updateData.idTipoUsuario = (datosValidados as any).id_tipoUsuario;
-    delete updateData.id_tipoUsuario;
-  }
-
-  try {
-    const usuarioActualizado = await prisma.usuario.update({
-      where: { id },
-      data: updateData,
-    });
-    return usuarioActualizado;
-  } catch (error) {
-    // Si el ID no existe, Prisma lanza una excepción
+  const usuario = await getUserId(id);
+  if (!usuario) {
     return null;
   }
-}
+
+  if (usuario.personaFisicaDni && (data.nombre || data.apellido || data.fechaNacimiento)) {
+    await putPersonaFisica(usuario.personaFisicaDni, {
+      nombre: data.nombre,
+      apellido: data.apellido,
+      fechaNacimiento: data.fechaNacimiento ? new Date(data.fechaNacimiento) : undefined
+    });
+  }
+
+  // 3. Actualizar los campos propios de Usuario
+  const usuarioActualizado = await prisma.usuario.update({
+    where: { id: id },
+    data: {
+      ...(data.email && { email: data.email }),
+      ...(data.telefono && { telefono: data.telefono })
+    }
+  });
+    return usuarioActualizado;
+  }
 
 async function patchUserPassword(id: number, password: string): Promise<boolean> {
   const passwordSegura = await bcrypt.hash(password, 10);

@@ -82,10 +82,16 @@ async function borrarComplejo(req: Request, res: Response) {
         }
 }
 
+async function obtenerComplejosDisponibles(req: Request, res: Response) {
+    const { ciudad, deporte, fecha,hora } = req.query;
+
+}
+
 export {
     obtenerComplejo,
     obtenerComplejos,
     crearComplejo,
     modificarComplejo,
-    borrarComplejo
+    borrarComplejo,
+    obtenerComplejosDisponibles
 };

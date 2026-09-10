@@ -1,87 +1,63 @@
 import { complejoSchema,type Complejo } from "./complejos.schema.js";
 import { proximoId } from "../shared/funciones.js";
+import { prisma } from "../shared/prisma.js";
 
 export interface ComplejoSalida extends Complejo {
     id: number;
 }
 
-const complejos:ComplejoSalida[] = [
-  {
-    "id": 1,
-    "nombre": "Complejo Deportivo El Galpón",
-    "direccion": "Av. San Martín 1420",
-    "id_encargado": 101,
-    "id_dueño": 1,
-    "id_localidad": 2000
-  },
-  {
-    "id": 2,
-    "nombre": "Padel & Fútbol La Redonda",
-    "direccion": "Calle 18 N° 850",
-    "id_encargado": 102,
-    "id_dueño": 2,
-    "id_localidad": 2505
-  },
-  {
-    "id": 3,
-    "nombre": "Predio Deportivo Central",
-    "direccion": "Bulevar Pellegrini 310",
-    "id_encargado": 103,
-    "id_dueño": 1,
-    "id_localidad": 3000
-  },
-  {
-    "id": 4,
-    "nombre": "Canchas Sintéticas El Roble",
-    "direccion": "Ruta 178 Km 12",
-    "id_encargado": 104,
-    "id_dueño": 3,
-    "id_localidad": 2520
-  }
-]
 
-async function getComplejoId(id: number): Promise<ComplejoSalida|null> {
-    const complejo = complejos.find(c => c.id === id);
-    return complejo || null
+
+async function getComplejoId(id: number): Promise<ComplejoSalida | null> {
+  const complejo = await prisma.complejo.findUnique({
+    where: { id }
+  });
+  return complejo;
 }
 
 async function postComplejo(complejo: Complejo): Promise<ComplejoSalida> {
-    
-    //Zod me permite valdiar los tipos de datos segun el schema y que esten los obligatorios
-    const datosValidados = complejoSchema.parse(complejo)
-    const  nextId = proximoId(complejos)
-    const nuevoComplejo = {id: nextId,...datosValidados};
+  // 1. Validamos los datos recibidos con Zod
+  const datosValidados = complejoSchema.parse(complejo);
 
-    // 4. Guardamos en el arreglo
-    complejos.push(nuevoComplejo);
-    return nuevoComplejo
+  // 2. Prisma maneja el ID autonumérico automáticamente
+  const nuevoComplejo = await prisma.complejo.create({
+    data: datosValidados
+  });
+
+  return nuevoComplejo;
 }
 async function getAllComplejos(): Promise<ComplejoSalida[]> {
-    return complejos || null   
+  const complejos = await prisma.complejo.findMany();
+  return complejos;
 }
 
-async function putComplejo(id: number, complejoNuevo: Partial<Complejo>): Promise<ComplejoSalida|null> {
+async function putComplejo(id: number, complejoNuevo: Partial<Complejo>): Promise<ComplejoSalida | null> {
+  // 1. Validamos que los campos opcionales tengan tipos correctos
+  const datosValidados = complejoSchema.partial().parse(complejoNuevo);
 
-    //convierte todos los campos en opcional pero valida que concuerden los tipos
-    const datosValidados = complejoSchema.partial().parse(complejoNuevo)
-
-    const index = complejos.findIndex(c => c.id ===id);
-    if(index === -1){
-      return null
-    }
-    complejos[index] = {...complejos[index], ...datosValidados,id:id};
-
-    const complejoCambiado = complejos[index]
-    return complejoCambiado
+  try {
+    // 2. Prisma actualiza directamente sin tener que buscar el índice
+    const complejoActualizado = await prisma.complejo.update({
+      where: { id },
+      data: datosValidados
+    });
+    return complejoActualizado;
+  } catch (error) {
+    // Si el ID no existe, Prisma lanza un error (P2025) y retornamos null para mantener tu firma original
+    return null;
+  }
 }
 
-async function deleteComplejo(id: number) {
-    const index = complejos.findIndex(c => c.id === id);
-    if(index === -1){
-      return false
-    }
-    complejos.splice(index,1)
-    return true
+async function deleteComplejo(id: number): Promise<boolean> {
+  try {
+    await prisma.complejo.delete({
+      where: { id }
+    });
+    return true;
+  } catch (error) {
+    // Si el registro no existía, devolvemos false
+    return false;
+  }
 }
 
 export {

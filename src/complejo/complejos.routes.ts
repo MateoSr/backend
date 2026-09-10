@@ -1,5 +1,5 @@
 import { Router } from "express";
-import {obtenerComplejo,obtenerComplejos,crearComplejo,modificarComplejo,borrarComplejo} from "./complejos.controller.js"
+import {obtenerComplejo,obtenerComplejos,crearComplejo,modificarComplejo,borrarComplejo,obtenerComplejosDisponibles} from "./complejos.controller.js"
 import {obtenerHorario,obtenerHorarios,crearHorario,modificarHorario,borrarHorario} from "../horario/horario.controller.js"
 import {obtenerCancha,crearCancha,modificarCancha,borrarCancha, obtenerCanchas} from "../cancha/cancha.controller.js"
 import {obtenerPrecio,obtenerPrecios,crearPrecio} from "../precio/precio.controller.js"
@@ -42,6 +42,10 @@ complejoRouter.delete("/:id_complejo/canchas/:nro",borrarCancha)
 complejoRouter.get("/:id_complejo/canchas/:nro_cancha/precios",obtenerPrecios)
 complejoRouter.get("/:id_complejo/canchas/:nro_cancha/precios/:fechaDesde",obtenerPrecio)
 complejoRouter.post("/:id_complejo/canchas/:nro_cancha/precios",crearPrecio)
+
+
+//Busqueda de complejos de una ciudad de un deporte de una fecha y hora determinada
+complejoRouter.get("/busqueda", obtenerComplejosDisponibles);
 
 export default complejoRouter
 
