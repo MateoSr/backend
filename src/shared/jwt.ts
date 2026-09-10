@@ -13,6 +13,17 @@ export function emitirToken(payload: TokenPayload): string {
   });
 }
 
+export function emitirTokenReset(userId: number): string {
+  return jwt.sign({ userId }, process.env.SECRET_KEY_RESET!, {
+
+    expiresIn: process.env.JWTRESET_EXPIRES_IN! as jwt.SignOptions['expiresIn'],
+  });
+}
+
 export function verificarToken(token: string): TokenPayload {
   return jwt.verify(token, process.env.SECRET_KEY!, { algorithms: ['HS256'] }) as TokenPayload;
+}
+
+export function verificarTokenReset(token: string): { userId: number } {
+  return jwt.verify(token, process.env.SECRET_KEY_RESET!, { algorithms: ['HS256'] }) as { userId: number };
 }

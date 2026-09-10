@@ -5,6 +5,8 @@ import {obtenerCancha,crearCancha,modificarCancha,borrarCancha, obtenerCanchas} 
 import {obtenerPrecio,obtenerPrecios,crearPrecio} from "../precio/precio.controller.js"
 
 const complejoRouter = Router()
+//Busqueda de complejos de una ciudad de un deporte de una fecha y hora determinada
+complejoRouter.get("/busqueda", obtenerComplejosDisponibles);
 
 
 

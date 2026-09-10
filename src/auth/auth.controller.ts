@@ -32,7 +32,7 @@ async function registrar(req: Request, res: Response) {
             email:email,
             password:password,
             telefono:telefono,
-            tipoUsuarioId:2
+            tipoUsuarioId:4
         }
      
         const persona ={
@@ -85,27 +85,31 @@ async function olvidePassword(req:Request,res:Response) {
 
     }catch(error:any){
         return res.status(500).json({error:error.message})
-    }
-    
+    } 
 }
 
-async function resetearPassword(req:Request,res:Response) {
-    try{
-        const {id,password} = req.body
-        if (!id || !password) {
-            return res.status(400).json({ message: "El ID y la nueva contraseña son requeridos." });
-            }
-        if(password.trim().length < 8){
-            return res.status(400).json({ message: "La contraseña es muy corta" });
-        }
-        const respuesta = await resetPassword(Number(id),String(password))
-        if(!respuesta){
-            return res.status(400).json({message:"Usuario no encontrado"})
-        }
-        return res.status(200).json({message:"Usuario actualizado"})
-    }catch(error:any){
-        return res.status(500).json({message:"Error al actualizar"})
+async function resetearPassword(req: Request, res: Response) {
+  try {
+    const { token, password } = req.body;
+
+    if (!token || !password) {
+      return res.status(400).json({ message: "El token y la nueva contraseña son requeridos." });
     }
+
+    if (password.trim().length < 8) {
+      return res.status(400).json({ message: "La contraseña es muy corta." });
+    }
+
+    const respuesta = await resetPassword(String(token), String(password));
+
+    if (!respuesta) {
+      return res.status(400).json({ message: "El enlace es inválido o ha expirado." });
+    }
+
+    return res.status(200).json({ message: "Contraseña actualizada correctamente." });
+  } catch (error: any) {
+    return res.status(500).json({ message: "Error al actualizar la contraseña." });
+  }
 }
  
 export  {iniciarSesion, registrar, olvidePassword,resetearPassword}

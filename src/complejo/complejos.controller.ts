@@ -1,6 +1,8 @@
-import {getComplejoId,getAllComplejos,postComplejo,putComplejo,deleteComplejo} from './complejos.service.js'
+import {getComplejoId,getAllComplejos,postComplejo,putComplejo,deleteComplejo,buscarComplejosDisponibles} from './complejos.service.js'
 import { ZodError } from 'zod';
 import {type Request, type Response} from 'express'
+
+
 async function obtenerComplejos(req: Request, res: Response) {
     try{
         const complejos = await getAllComplejos()
@@ -83,8 +85,26 @@ async function borrarComplejo(req: Request, res: Response) {
 }
 
 async function obtenerComplejosDisponibles(req: Request, res: Response) {
-    const { ciudad, deporte, fecha,hora } = req.query;
+    const ciudad = req.query.ciudad as string;
+    const deporte = req.query.deporte as string;
+    const fecha = req.query.fecha as string;
+    const hora = req.query.hora as string;
 
+    if (!ciudad || !deporte || !fecha || !hora) {
+      return res.status(400).json({ 
+        message: "Faltan parámetros obligatorios: ciudad, deporte, fecha y hora." 
+      });
+    }
+    const resultados = await buscarComplejosDisponibles({ ciudad, deporte, fecha, hora });
+
+    if(resultados.length === 0) {
+      return res.status(404).json({ message: "No se encontraron complejos disponibles con los filtros proporcionados." });
+    }
+
+    return res.json({
+      total: resultados.length,
+      data: resultados,
+    });
 }
 
 export {

@@ -5,7 +5,12 @@ import { prisma } from "../shared/prisma.js";
 export interface ComplejoSalida extends Complejo {
     id: number;
 }
-
+interface BusquedaFiltros {
+  ciudad: string;
+  deporte: string;
+  fecha: string; 
+  hora: string;  
+}
 
 
 async function getComplejoId(id: number): Promise<ComplejoSalida | null> {
@@ -60,10 +65,65 @@ async function deleteComplejo(id: number): Promise<boolean> {
   }
 }
 
+async function buscarComplejosDisponibles(filtros: BusquedaFiltros): Promise<ComplejoSalida[]> {
+    const { ciudad, deporte, fecha, hora } = filtros;
+  const fechaHoraInicio = new Date(`${fecha}T${hora}:00`);
+
+  const complejosDisponibles = await prisma.complejo.findMany({
+    where: {
+      // 1. Filtrar por Localidad
+      localidad: {
+        nombre: {
+          equals: ciudad,
+          mode: 'insensitive',
+        },
+      },
+      // 2. Filtrar por Canchas que tengan el deporte pedido
+      canchas: {
+        some: {
+          tipoCancha: {
+            deporte: {
+              equals: deporte,
+              mode: 'insensitive',
+            },
+          },
+          // 3. Que NO tengan un turno ocupado ese día a esa hora
+          turnos: {
+            none: {
+              fecha: fechaHoraInicio,
+              horaInicio: hora,
+              estado: {
+                not: 'Cancelado',
+              },
+            },
+          },
+        },
+      },
+    },
+    include: {
+      localidad: true,
+      canchas: {
+        where: {
+          tipoCancha: {
+            deporte: {
+              equals: deporte,
+              mode: 'insensitive',
+            },
+          },
+        },
+        include: {
+          tipoCancha: true,
+        },
+      },
+    },
+  });
+  return complejosDisponibles;
+}
 export {
     getComplejoId,
     postComplejo,
     getAllComplejos,
     putComplejo,
-    deleteComplejo
+    deleteComplejo,
+    buscarComplejosDisponibles
 }

@@ -1,14 +1,15 @@
 import {BrevoClient} from '@getbrevo/brevo'
 import {patchUserPassword,getUserEmail} from '../usuario/users.service.js'
 import bcrypt from "bcryptjs";
-import { emitirToken } from '../shared/jwt.js';
+import { emitirTokenReset,emitirToken, verificarTokenReset } from '../shared/jwt.js';
 
 const brevo = new BrevoClient({
   apiKey: process.env.BREVO_API_KEY || '',
 });
 
 export async function enviarEmailResetPassword(email: string, userId: number){
-  const resetUrl = `${process.env.FRONTEND_URL}/reset-password?id=${userId}`;
+  const resetToken = emitirTokenReset(userId);
+  const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
 
   // Usamos la API de transactionalEmails directamente
 await brevo.transactionalEmails.sendTransacEmail({
@@ -39,10 +40,18 @@ await brevo.transactionalEmails.sendTransacEmail({
   });
 }
 
-export async function resetPassword(id:number, password:string):Promise<boolean>{
-    //traBAJAR con el tokem cuando haya
-    const response = await patchUserPassword(id,password)
-    return response
+export async function resetPassword(token: string, password: string): Promise<boolean> {
+  try {
+    // 1. Verificamos el token (si venció o fue manipulado, saltará al catch)
+    const decoded = verificarTokenReset(token);
+
+    // 2. Extraemos el userId de forma segura desde el payload decodificado
+    const response = await patchUserPassword(decoded.userId, password);
+    return response;
+  } catch (error) {
+    // El token expiró o es inválido
+    return false;
+  }
 }
 
 export async function login(email: string, password: string): Promise<{token: string} | null> {
