@@ -32,7 +32,11 @@ complejoRouter.delete('/:id_complejo/horarios/:num_dia', borrarHorario);
 //ademas nunca vamos a buscar una cancha suelta, siempre se buscaran a la hora de mostrar un complejo
 //entonces busco todo desde los mismos endpoints
 complejoRouter.get("/:id_complejo/canchas",obtenerCanchas)
+
+//IMPLEMENTAR QUE AL ACCEDER A UNA CANCHA TE TRAIGA TMB EL TIPOCANCHA Y EL ULTIMO PRECIO
 complejoRouter.get("/:id_complejo/canchas/:nro",obtenerCancha)
+
+
 complejoRouter.post("/:id_complejo/canchas",crearCancha)
 complejoRouter.put("/:id_complejo/canchas/:nro",modificarCancha)
 complejoRouter.delete("/:id_complejo/canchas/:nro",borrarCancha)

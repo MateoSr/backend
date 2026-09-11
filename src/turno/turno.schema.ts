@@ -8,7 +8,7 @@ export const turnoSchema = z.object({
   tipoTurnoId: z.number().int("El id debe ser un numero entero"),
   complejoId: z.number().int("El id debe ser un numero entero"),
   canchaNro: z.number().int("El id debe ser un numero entero"),
-  fecha: z.union([z.string().date(), z.date()]),
+  fecha: z.coerce.date(),
   
   // Acepta string de tiempo (ej. "18:00" o formato ISO) o un objeto Date de Prisma
   horaInicio: z.union([
