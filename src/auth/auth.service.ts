@@ -16,7 +16,7 @@ await brevo.transactionalEmails.sendTransacEmail({
     subject: "Restablece tu contraseña - Turno Libre",
     sender: {
       name: "Turno Libre",
-      email: "soporteturnolibre@gmail.com", // Reemplazar por tu mail verificado en Brevo
+      email: "soporteturnolibre@gmail.com",
     },
     to: [
       {
@@ -58,10 +58,22 @@ export async function login(email: string, password: string): Promise<{token: st
   const user = await getUserEmail(email);
   if (!user) throw new Error("Credenciales inválidas");
 
-
   const coincide = await bcrypt.compare(password, user.password);
   if (!coincide) throw new Error("Credenciales inválidas");
 
+  const token = emitirToken({ userId: user.id, email: user.email, rol: user.tipoUsuario.descripcion });
+  return {
+    token
+  };
+}
+
+export async function loginAdmin(email: string, password: string): Promise<{token: string} | null> {
+  const user = await getUserEmail(email);
+  if (!user) throw new Error("Credenciales inválidas");
+
+
+  const coincide = await bcrypt.compare(password, user.password);
+  if (!coincide && user.tipoUsuarioId !== 1) throw new Error("Credenciales inválidas");
   
   const token = emitirToken({ userId: user.id, email: user.email, rol: user.tipoUsuario.descripcion });
   return {

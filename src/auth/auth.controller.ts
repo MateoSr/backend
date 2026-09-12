@@ -2,10 +2,7 @@ import {postUser,getUserEmail} from '../usuario/users.service.js'
 import {getPersonaFisicaDni,postPersonaFisica} from '../personaFisica/personaFisica.service.js'
 import { ZodError } from 'zod';
 import { type Request, type Response } from "express";
-import {enviarEmailResetPassword, login, resetPassword} from './auth.service.js' 
-
-
-
+import {enviarEmailResetPassword, login, loginAdmin, resetPassword} from './auth.service.js' 
 
 
 async function iniciarSesion(req: Request, res: Response) {
@@ -21,7 +18,20 @@ async function iniciarSesion(req: Request, res: Response) {
         res.status(400).json({error:error.message})
     }
 }
-    
+
+async function iniciarSesionAdmin(req: Request, res: Response) {
+    try {
+        const { email, password } = req.body;
+        const token = await loginAdmin(String(email), String(password));
+        console.log(token)
+        return res.json({
+            message:"Login exitoso",
+            token: token
+        })
+    }catch(error:any){
+        res.status(400).json({error:error.message})
+    }
+}
 
 async function registrar(req: Request, res: Response) {
     try{
@@ -112,4 +122,4 @@ async function resetearPassword(req: Request, res: Response) {
   }
 }
  
-export  {iniciarSesion, registrar, olvidePassword,resetearPassword}
+export  {iniciarSesion, iniciarSesionAdmin, registrar, olvidePassword,resetearPassword}
