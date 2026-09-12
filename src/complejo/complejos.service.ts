@@ -15,16 +15,24 @@ interface BusquedaFiltros {
 
 async function getComplejoId(id: number): Promise<ComplejoSalida | null> {
   const complejo = await prisma.complejo.findUnique({
-    where: { id }
+    where: { id },
+    include: {
+      localidad: true,
+      horarios: true,
+      canchas: {
+        include: {
+          tipoCancha: true,
+          turnos: true,
+        },
+      },
+    },
   });
   return complejo;
 }
 
 async function postComplejo(complejo: Complejo): Promise<ComplejoSalida> {
-  // 1. Validamos los datos recibidos con Zod
   const datosValidados = complejoSchema.parse(complejo);
 
-  // 2. Prisma maneja el ID autonumérico automáticamente
   const nuevoComplejo = await prisma.complejo.create({
     data: datosValidados
   });
@@ -65,59 +73,122 @@ async function deleteComplejo(id: number): Promise<boolean> {
   }
 }
 
-async function buscarComplejosDisponibles(filtros: BusquedaFiltros): Promise<ComplejoSalida[]> {
-    const { ciudad, deporte, fecha, hora } = filtros;
-  const fechaHoraInicio = new Date(`${fecha}T${hora}:00`);
+async function buscarComplejosDisponibles(filtros: BusquedaFiltros): Promise<any[]> {
+  //agarramos filtros
+  const { ciudad, deporte, fecha, hora } = filtros; 
 
+  //convertimos a fechas
+  const fechaDate = new Date(`${fecha}T00:00:00.000Z`);
+  const horaInicioDate = new Date(`1970-01-01T${hora}:00.000Z`);
+
+  //inicio de la query
   const complejosDisponibles = await prisma.complejo.findMany({
     where: {
-      // 1. Filtrar por Localidad
+      //buscamos la localidad correspondiente
       localidad: {
         nombre: {
           equals: ciudad,
-          mode: 'insensitive',
+          mode: "insensitive",
         },
       },
-      // 2. Filtrar por Canchas que tengan el deporte pedido
+      //entramos a las canchas
       canchas: {
         some: {
-          tipoCancha: {
-            deporte: {
-              equals: deporte,
-              mode: 'insensitive',
-            },
-          },
-          // 3. Que NO tengan un turno ocupado ese día a esa hora
-          turno: {
+          //buscamos alguna con el id deporte del filtro
+          tipoCanchaId: Number(deporte),
+          //entramos a los turnos de la cancha
+          turnos: {
+            //si no hay un turno para la fecha y hora 
             none: {
-              fecha: fechaHoraInicio,
-              horaInicio: hora,
+              fecha: fechaDate,
+              horaInicio: horaInicioDate,
               estado: {
-                not: 'Cancelado',
+                not: "CANCELADO",
               },
             },
           },
         },
       },
     },
+    //con el include traemos la localidad,y las canchas que tengan disponibilidad
     include: {
       localidad: true,
       canchas: {
         where: {
-          tipoCancha: {
-            deporte: {
-              equals: deporte,
-              mode: 'insensitive',
+          tipoCanchaId: Number(deporte),
+          turnos: {
+            none: {
+              fecha: fechaDate,
+              horaInicio: horaInicioDate,
+              estado: {
+                not: "CANCELADO",
+              },
             },
           },
         },
         include: {
           tipoCancha: true,
+          //traemos los precios para obtener el más reciente
+          precios: {
+            where: {
+              fechaDesde: {
+                lte: fechaDate, // menor o igual a la fecha buscada
+              },
+            },
+            //ordebnamos mas reciente a viejo
+            orderBy: {
+              fechaDesde: "desc",
+            },
+            //tomamos 1 solo
+            take: 1,
+          },
+          // traemos todos los turnos del día para calcular las horas libres
+          turnos: {
+            where: {
+              fecha: fechaDate,
+              estado: {
+                not: "CANCELADO",
+              },
+            },
+          },
         },
       },
     },
   });
-  return complejosDisponibles;
+
+  // Grilla base de horarios (se puede ajustar según los horarios del complejo)
+  const todosLosHorarios = [
+    "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", 
+    "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00"
+  ];
+
+  // Mapeamos los datos para devolver la estructura limpia que pide el Frontend
+  return complejosDisponibles.map((complejo) => {
+    //toma la primer cancha encontra
+    const cancha = complejo.canchas[0];
+    //obtenemos el precio de esa cancha
+    const precioVigente = cancha?.precios[0]?.precioBase ?? 0;
+
+    // Extraemos las horas que están ocupadas ese día
+    const horasOcupadas = cancha?.turnos.map((t) => 
+      t.horaInicio.toISOString().substring(11, 16)
+    ) || [];
+
+    // Filtramos las horas libres excluyendo las ocupadas
+    const horariosLibres = todosLosHorarios.filter(
+      (h) => !horasOcupadas.includes(h)
+    );
+
+    //ajustamos lo q devuelve para coincidir con lo que requiere el front
+    return {
+      id: complejo.id,
+      nombre: complejo.nombre,
+      direccion: `${complejo.direccion}, ${complejo.localidad.nombre}`,
+      precio: precioVigente,
+      imagenUrl: complejo.imagenUrl ?? "https://via.placeholder.com/300x200",
+      disponibilidad: horariosLibres.map((h) => ({ time: h })),
+    };
+  });
 }
 export {
     getComplejoId,
