@@ -1,5 +1,9 @@
 import { prisma } from '../src/shared/prisma.js';
 import 'dotenv/config';
+import * as bcrypt from "bcryptjs";
+
+
+const passwordHasheada = await bcrypt.hash("password123", 10);
 
 async function main() {
   console.log("Iniciando la carga de datos iniciales...");
@@ -18,16 +22,16 @@ async function main() {
   //Tipos de Cancha
   await prisma.tipoCancha.createMany({
     data: [
-      { id: 1, deporte: "Futbol 11" },
-      { id: 2, deporte: "Futbol 5" },
-      { id: 3, deporte: "Futbol 7" },
-      { id: 4, deporte: "Futsal" },
-      { id: 5, deporte: "Padel" },
-      { id: 6, deporte: "Tenis" },
-      { id: 7, deporte: "Ping Pong" },
-      { id: 8, deporte: "Hockey" },
-      { id: 9, deporte: "Basket" },
-      { id: 10, deporte: "Voley" },
+      { id: 1, deporte: "Futbol 11" ,duracion:60},
+      { id: 2, deporte: "Futbol 5" ,duracion:60},
+      { id: 3, deporte: "Futbol 7" ,duracion:60},
+      { id: 4, deporte: "Futsal" ,duracion:60},
+      { id: 5, deporte: "Padel" ,duracion:90},
+      { id: 6, deporte: "Tenis",duracion:60 },
+      { id: 7, deporte: "Ping Pong" ,duracion:60},
+      { id: 8, deporte: "Hockey" ,duracion:60},
+      { id: 9, deporte: "Basket" ,duracion:60},
+      { id: 10, deporte: "Voley" ,duracion:60},
     ],
     skipDuplicates: true,
   });
@@ -244,25 +248,23 @@ async function main() {
 
   // 8. Usuarios
   const admin = await prisma.usuario.upsert({
-    where: { email: "admin@turnolibre.com" },
-    update: {},
-    create: {
-      id: 1,
-      email: "admin@turnolibre.com",
-      password: "password123",
-      telefono: "3415550000",
-      tipoUsuarioId: 1,
-      personaFisicaDni: "30111222",
-    },
+  where: { email: "admin@turnolibre.com" },
+  update: {},
+  create: {
+    email: "admin@turnolibre.com",
+    password: passwordHasheada,
+    telefono: "3415550000",
+    tipoUsuarioId: 1,
+    personaFisicaDni: "30111222",
+  },
   });
 
   const dueno1 = await prisma.usuario.upsert({
     where: { email: "dueno1@turnolibre.com" },
     update: {},
     create: {
-      id: 2,
       email: "dueno1@turnolibre.com",
-      password: "password123",
+      password: passwordHasheada,
       telefono: "3415551111",
       tipoUsuarioId: 4,
       personaJuridicaCuit: "30711223344",
@@ -273,9 +275,8 @@ async function main() {
     where: { email: "dueno2@turnolibre.com" },
     update: {},
     create: {
-      id: 3,
       email: "dueno2@turnolibre.com",
-      password: "password123",
+      password: passwordHasheada,
       telefono: "3415552222",
       tipoUsuarioId: 4,
       personaJuridicaCuit: "30855667788",
@@ -286,9 +287,8 @@ async function main() {
     where: { email: "encargado1@turnolibre.com" },
     update: {},
     create: {
-      id: 4,
       email: "encargado1@turnolibre.com",
-      password: "password123",
+      password: passwordHasheada,
       telefono: "3415553333",
       tipoUsuarioId: 2,
       personaFisicaDni: "35444555",
@@ -299,9 +299,8 @@ async function main() {
     where: { email: "encargado2@turnolibre.com" },
     update: {},
     create: {
-      id: 5,
       email: "encargado2@turnolibre.com",
-      password: "password123",
+      password: passwordHasheada,
       telefono: "3415554444",
       tipoUsuarioId: 2,
       personaFisicaDni: "38999000",
@@ -312,35 +311,31 @@ async function main() {
     where: { email: "cliente1@gmail.com" },
     update: {},
     create: {
-      id: 6,
       email: "cliente1@gmail.com",
-      password: "password123",
+      password: passwordHasheada,
       telefono: "3415555555",
       tipoUsuarioId: 3,
       personaFisicaDni: "40123456",
     },
   });
-
   // 9. Complejos
-  await prisma.complejo.upsert({
-    where: { id: 1 },
-    update: {},
-    create: {
-      id: 1,
-      nombre: "Al Angulo",
-      direccion: "Av. Pellegrini 3200",
-      localidadId: 102,
-      duenoId: dueno1.id,
-      encargadoId: encargado1.id,
-      imagenUrl: "https://ejemplo.com/fotos/al-angulo.jpg",
-    },
+ const complejo1 = await prisma.complejo.upsert({
+  where: { id: 1 },
+  update: {},
+  create: {
+    nombre: "Al Angulo",
+    direccion: "Av. Pellegrini 3200",
+    localidadId: 102,
+    duenoId: dueno1.id,
+    encargadoId: encargado1.id,
+    imagenUrl: "https://ejemplo.com/fotos/al-angulo.jpg",
+  },
   });
 
-  await prisma.complejo.upsert({
+  const complejo2 = await prisma.complejo.upsert({
     where: { id: 2 },
     update: {},
     create: {
-      id: 2,
       nombre: "Estrella del Sur",
       direccion: "Bv. Oroño 4500",
       localidadId: 102,
