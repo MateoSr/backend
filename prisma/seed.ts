@@ -223,20 +223,105 @@ async function main() {
     skipDuplicates: true,
   });
 
-  //Dueño
-  const dueno = await prisma.usuario.upsert({
-    where: { email: "dueno@turnolibre.com" },
+ await prisma.personaFisica.createMany({
+    data: [
+      { dni: "30111222", nombre: "Carlos", apellido: "Gómez", fechaNacimiento: new Date("1985-04-12") },
+      { dni: "35444555", nombre: "Mariana", apellido: "Pérez", fechaNacimiento: new Date("1990-08-25") },
+      { dni: "38999000", nombre: "Lucas", apellido: "Rodríguez", fechaNacimiento: new Date("1995-01-15") },
+      { dni: "40123456", nombre: "Sofia", apellido: "Martínez", fechaNacimiento: new Date("1997-11-30") },
+    ],
+    skipDuplicates: true,
+  });
+
+  // 7. Personas Jurídicas
+  await prisma.personaJuridica.createMany({
+    data: [
+      { cuit: "30711223344", razonSocial: "Deportes Pellegrini S.A." },
+      { cuit: "30855667788", razonSocial: "Complejos del Litoral SRL" },
+    ],
+    skipDuplicates: true,
+  });
+
+  // 8. Usuarios
+  const admin = await prisma.usuario.upsert({
+    where: { email: "admin@turnolibre.com" },
     update: {},
     create: {
       id: 1,
-      email: "dueno@turnolibre.com",
+      email: "admin@turnolibre.com",
       password: "password123",
-      telefono: "1234567890",
-      tipoUsuarioId: 4
-    }
+      telefono: "3415550000",
+      tipoUsuarioId: 1,
+      personaFisicaDni: "30111222",
+    },
   });
 
-  //Complejos
+  const dueno1 = await prisma.usuario.upsert({
+    where: { email: "dueno1@turnolibre.com" },
+    update: {},
+    create: {
+      id: 2,
+      email: "dueno1@turnolibre.com",
+      password: "password123",
+      telefono: "3415551111",
+      tipoUsuarioId: 4,
+      personaJuridicaCuit: "30711223344",
+    },
+  });
+
+  const dueno2 = await prisma.usuario.upsert({
+    where: { email: "dueno2@turnolibre.com" },
+    update: {},
+    create: {
+      id: 3,
+      email: "dueno2@turnolibre.com",
+      password: "password123",
+      telefono: "3415552222",
+      tipoUsuarioId: 4,
+      personaJuridicaCuit: "30855667788",
+    },
+  });
+
+  const encargado1 = await prisma.usuario.upsert({
+    where: { email: "encargado1@turnolibre.com" },
+    update: {},
+    create: {
+      id: 4,
+      email: "encargado1@turnolibre.com",
+      password: "password123",
+      telefono: "3415553333",
+      tipoUsuarioId: 2,
+      personaFisicaDni: "35444555",
+    },
+  });
+
+  const encargado2 = await prisma.usuario.upsert({
+    where: { email: "encargado2@turnolibre.com" },
+    update: {},
+    create: {
+      id: 5,
+      email: "encargado2@turnolibre.com",
+      password: "password123",
+      telefono: "3415554444",
+      tipoUsuarioId: 2,
+      personaFisicaDni: "38999000",
+    },
+  });
+
+  const cliente1 = await prisma.usuario.upsert({
+    where: { email: "cliente1@gmail.com" },
+    update: {},
+    create: {
+      id: 6,
+      email: "cliente1@gmail.com",
+      password: "password123",
+      telefono: "3415555555",
+      tipoUsuarioId: 3,
+      personaFisicaDni: "40123456",
+    },
+  });
+
+  // 9. Complejos
   await prisma.complejo.upsert({
     where: { id: 1 },
     update: {},
@@ -245,12 +330,102 @@ async function main() {
       nombre: "Al Angulo",
       direccion: "Av. Pellegrini 3200",
       localidadId: 102,
-      duenoId: dueno.id,
-      encargadoId: 1,
-      imagenUrl: "../../frontend/mi-primer-react/src/assets/foto-complejo-AlAngulo.jpg",
-    }
+      duenoId: dueno1.id,
+      encargadoId: encargado1.id,
+      imagenUrl: "https://ejemplo.com/fotos/al-angulo.jpg",
+    },
   });
 
+  await prisma.complejo.upsert({
+    where: { id: 2 },
+    update: {},
+    create: {
+      id: 2,
+      nombre: "Estrella del Sur",
+      direccion: "Bv. Oroño 4500",
+      localidadId: 102,
+      duenoId: dueno2.id,
+      encargadoId: encargado2.id,
+      imagenUrl: "https://ejemplo.com/fotos/estrella-sur.jpg",
+    },
+  });
+
+  // 10. Horarios de Complejos (Lunes a Domingo)
+  await prisma.horario.createMany({
+    data: [
+      // Complejo 1: Lunes (1) y Martes (2)
+      { complejoId: 1, nroDia: 1, horaApertura: new Date("1970-01-01T14:00:00Z"), horaCierre: new Date("1970-01-01T23:00:00Z") },
+      { complejoId: 1, nroDia: 2, horaApertura: new Date("1970-01-01T14:00:00Z"), horaCierre: new Date("1970-01-01T23:00:00Z") },
+      // Complejo 2: Lunes (1) y Martes (2)
+      { complejoId: 2, nroDia: 1, horaApertura: new Date("1970-01-01T16:00:00Z"), horaCierre: new Date("1970-01-01T00:00:00Z") },
+      { complejoId: 2, nroDia: 2, horaApertura: new Date("1970-01-01T16:00:00Z"), horaCierre: new Date("1970-01-01T00:00:00Z") },
+    ],
+    skipDuplicates: true,
+  });
+
+  // 11. Canchas
+  await prisma.cancha.createMany({
+    data: [
+      // Canchas Complejo 1
+      { nro: 1, complejoId: 1, tipoCanchaId: 2 }, // Futbol 5
+      { nro: 2, complejoId: 1, tipoCanchaId: 3 }, // Futbol 7
+      { nro: 3, complejoId: 1, tipoCanchaId: 5 }, // Pádel
+      // Canchas Complejo 2
+      { nro: 1, complejoId: 2, tipoCanchaId: 2 }, // Futbol 5
+      { nro: 2, complejoId: 2, tipoCanchaId: 6 }, // Tenis
+    ],
+    skipDuplicates: true,
+  });
+
+  // 12. Precios
+  await prisma.precio.createMany({
+    data: [
+      { complejoId: 1, canchaNro: 1, fechaDesde: new Date("2026-01-01"), precioBase: 25000.00, precioAdicional: 3000.00, precioSena: 10000.00 },
+      { complejoId: 1, canchaNro: 2, fechaDesde: new Date("2026-01-01"), precioBase: 35000.00, precioAdicional: 4000.00, precioSena: 15000.00 },
+      { complejoId: 1, canchaNro: 3, fechaDesde: new Date("2026-01-01"), precioBase: 20000.00, precioAdicional: 2000.00, precioSena: 8000.00 },
+      { complejoId: 2, canchaNro: 1, fechaDesde: new Date("2026-01-01"), precioBase: 24000.00, precioAdicional: 2500.00, precioSena: 10000.00 },
+      { complejoId: 2, canchaNro: 2, fechaDesde: new Date("2026-01-01"), precioBase: 22000.00, precioAdicional: 2000.00, precioSena: 9000.00 },
+    ],
+    skipDuplicates: true,
+  });
+
+  // 13. Turnos
+  await prisma.turno.createMany({
+    data: [
+      {
+        fecha: new Date("2026-09-20"),
+        horaInicio: new Date("1970-01-01T18:00:00Z"),
+        horaFin: new Date("1970-01-01T19:00:00Z"),
+        estado: "RESERVADO",
+        clienteId: cliente1.id,
+        tipoTurnoId: 1,
+        complejoId: 1,
+        canchaNro: 1,
+      },
+      {
+        fecha: new Date("2026-09-20"),
+        horaInicio: new Date("1970-01-01T20:00:00Z"),
+        horaFin: new Date("1970-01-01T21:30:00Z"),
+        estado: "RESERVADO",
+        clienteId: cliente1.id,
+        tipoTurnoId: 2,
+        complejoId: 1,
+        canchaNro: 3,
+      },
+      {
+        fecha: new Date("2026-09-21"),
+        horaInicio: new Date("1970-01-01T19:00:00Z"),
+        horaFin: new Date("1970-01-01T20:00:00Z"),
+        estado: "CANCELADO",
+        motivoCancelacion: "Lluvia intensa",
+        clienteId: cliente1.id,
+        tipoTurnoId: 1,
+        complejoId: 2,
+        canchaNro: 1,
+      },
+    ],
+    skipDuplicates: true,
+  });
   console.log("¡Precarga de datos completada con éxito!");
 }
 

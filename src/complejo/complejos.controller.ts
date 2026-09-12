@@ -96,7 +96,7 @@ async function obtenerComplejosDisponibles(req: Request, res: Response) {
       });
     }
     const resultados = await buscarComplejosDisponibles({ ciudad, deporte, fecha, hora });
-
+    console.log(resultados)
     if(resultados.length === 0) {
       return res.status(404).json({ message: "No se encontraron complejos disponibles con los filtros proporcionados." });
     }
