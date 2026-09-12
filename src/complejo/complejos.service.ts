@@ -15,16 +15,24 @@ interface BusquedaFiltros {
 
 async function getComplejoId(id: number): Promise<ComplejoSalida | null> {
   const complejo = await prisma.complejo.findUnique({
-    where: { id }
+    where: { id },
+    include: {
+      localidad: true,
+      horarios: true,
+      canchas: {
+        include: {
+          tipoCancha: true,
+          turnos: true,
+        },
+      },
+    },
   });
   return complejo;
 }
 
 async function postComplejo(complejo: Complejo): Promise<ComplejoSalida> {
-  // 1. Validamos los datos recibidos con Zod
   const datosValidados = complejoSchema.parse(complejo);
 
-  // 2. Prisma maneja el ID autonumérico automáticamente
   const nuevoComplejo = await prisma.complejo.create({
     data: datosValidados
   });
