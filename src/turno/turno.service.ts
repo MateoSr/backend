@@ -48,7 +48,6 @@ async function getTurnoId(id:number): Promise<TurnoSalida | null> {
 
 async function postTurno(turno: Turno): Promise<TurnoSalida> {
   const datosValidados = turnoSchema.parse(turno);
-
   const nuevoTurno = await prisma.turno.create({
     data: {
       clienteId: datosValidados.clienteId,

@@ -237,9 +237,10 @@ async function main() {
   });
 
   //Complejos
-  await prisma.complejo.createMany({
-    data: [
-    {
+  await prisma.complejo.upsert({
+    where: { id: 1 },
+    update: {},
+    create: {
       id: 1,
       nombre: "Al Angulo",
       direccion: "Av. Pellegrini 3200",
@@ -247,54 +248,7 @@ async function main() {
       duenoId: dueno.id,
       encargadoId: 1,
       imagenUrl: "../../frontend/mi-primer-react/src/assets/foto-complejo-AlAngulo.jpg",
-    },
-    {
-      id: 2,
-      nombre: "Buena Bandeja",
-      direccion: "Bulevar Oroño 1450",
-      localidadId: 102,
-      duenoId: dueno.id,
-      encargadoId: 2,
-      imagenUrl: "../../frontend/mi-primer-react/src/assets/foto-complejo-BuenaBandeja.jpg",
-    },
-    {
-      id: 3,
-      nombre: "De Volea",
-      direccion: "Av. Alberdi 850",
-      localidadId: 102,
-      duenoId: dueno.id,
-      encargadoId: 3,
-      imagenUrl: "../../frontend/mi-primer-react/src/assets/foto-complejo-DeVolea.jpg",
-    },
-    {
-      id: 4,
-      nombre: "El Ace",
-      direccion: "San Martín 2100",
-      localidadId: 102,
-      duenoId: dueno.id,
-      encargadoId: 1,
-      imagenUrl: "../../frontend/mi-primer-react/src/assets/foto-complejo-ElAce.jpg",
-    },
-    {
-      id: 5,
-      nombre: "La Volcada",
-      direccion: "Córdoba 4500",
-      localidadId: 102,
-      duenoId: dueno.id,
-      encargadoId: 4,
-      imagenUrl: "../../frontend/mi-primer-react/src/assets/foto-complejo-LaVolcada.jpg",
-    },
-    {
-      id: 6,
-      nombre: "Marty Supreme",
-      direccion: "Av. Francia 1200",
-      localidadId: 102,
-      duenoId: dueno.id,
-      encargadoId: 5,
-      imagenUrl: "../../frontend/mi-primer-react/src/assets/foto-complejo-MartySupreme.jpg",
-    },
-  ],
-    skipDuplicates: true,
+    }
   });
 
   console.log("¡Precarga de datos completada con éxito!");

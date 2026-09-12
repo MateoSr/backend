@@ -45,6 +45,7 @@ async function crearTurno(req:Request,res:Response) {
         return res.status(400).json({
             message: "Error de validación en los datos ingresados",})
         }
+        console.log(error.message)
         return res.status(400).json({error:error.message})
         }
 }
