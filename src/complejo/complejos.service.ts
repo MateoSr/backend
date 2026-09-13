@@ -6,10 +6,12 @@ export interface ComplejoSalida extends Complejo {
     id: number;
 }
 interface BusquedaFiltros {
-  ciudad: string;
-  deporte: string;
-  fecha: string; 
-  hora: string;  
+  ciudad?: string;
+  deporte?: string;
+  fecha?: string;
+  hora?: string;
+  min?: number;
+  max?: number;
 }
 
 
@@ -75,56 +77,64 @@ async function deleteComplejo(id: number): Promise<boolean> {
 
 async function buscarComplejosDisponibles(filtros: BusquedaFiltros): Promise<any[]> {
   //agarramos filtros
-  const { ciudad, deporte, fecha, hora } = filtros; 
+  const { ciudad, deporte, fecha, hora, min = 0, max = Infinity } = filtros;
 
   //convertimos a fechas
-  const fechaDate = new Date(`${fecha}T00:00:00.000Z`);
-  const horaInicioDate = new Date(`1970-01-01T${hora}:00.000Z`);
+  const fechaDate = fecha ? new Date(`${fecha}T00:00:00.000Z`) : new Date();
+  const buscaDisponibilidad = Boolean(deporte && fecha && hora);
+  const horaInicioDate = hora ? new Date(`1970-01-01T${hora}:00.000Z`) : null;
 
   //inicio de la query
   const complejosDisponibles = await prisma.complejo.findMany({
     where: {
       //buscamos la localidad correspondiente
-      localidad: {
-        nombre: {
-          equals: ciudad,
-          mode: "insensitive",
-        },
-      },
-      //entramos a las canchas
-      canchas: {
-        some: {
-          //buscamos alguna con el id deporte del filtro
-          tipoCanchaId: Number(deporte),
-          //entramos a los turnos de la cancha
-          turnos: {
-            //si no hay un turno para la fecha y hora 
-            none: {
-              fecha: fechaDate,
-              horaInicio: horaInicioDate,
-              estado: {
-                not: "CANCELADO",
-              },
-            },
+      ...(ciudad ? {
+        localidad: {
+          nombre: {
+            equals: ciudad,
+            mode: "insensitive",
           },
         },
-      },
+      } : {}),
+      //entramos a las canchas
+      ...(deporte ? {
+        canchas: {
+          some: {
+            //buscamos alguna con el id deporte del filtro
+            tipoCanchaId: Number(deporte),
+            ...(buscaDisponibilidad ? {
+              turnos: {
+                //si no hay un turno para la fecha y hora
+                none: {
+                  fecha: fechaDate,
+                  horaInicio: horaInicioDate!,
+                  estado: {
+                    not: "CANCELADO",
+                  },
+                },
+              },
+            } : {}),
+          },
+        },
+      } : {}),
     },
     //con el include traemos la localidad,y las canchas que tengan disponibilidad
     include: {
       localidad: true,
       canchas: {
         where: {
-          tipoCanchaId: Number(deporte),
-          turnos: {
-            none: {
-              fecha: fechaDate,
-              horaInicio: horaInicioDate,
-              estado: {
-                not: "CANCELADO",
+          ...(deporte ? { tipoCanchaId: Number(deporte) } : {}),
+          ...(buscaDisponibilidad ? {
+            turnos: {
+              none: {
+                fecha: fechaDate,
+                horaInicio: horaInicioDate!,
+                estado: {
+                  not: "CANCELADO",
+                },
               },
             },
-          },
+          } : {}),
         },
         include: {
           tipoCancha: true,
@@ -163,11 +173,11 @@ async function buscarComplejosDisponibles(filtros: BusquedaFiltros): Promise<any
   ];
 
   // Mapeamos los datos para devolver la estructura limpia que pide el Frontend
-  return complejosDisponibles.map((complejo) => {
+  const resultados = complejosDisponibles.map((complejo) => {
     //toma la primer cancha encontra
     const cancha = complejo.canchas[0];
     //obtenemos el precio de esa cancha
-    const precioVigente = cancha?.precios[0]?.precioBase ?? 0;
+    const precioVigente = Number(cancha?.precios[0]?.precioBase ?? 0);
 
     // Extraemos las horas que están ocupadas ese día
     const horasOcupadas = cancha?.turnos.map((t) => 
@@ -189,6 +199,8 @@ async function buscarComplejosDisponibles(filtros: BusquedaFiltros): Promise<any
       disponibilidad: horariosLibres.map((h) => ({ time: h })),
     };
   });
+
+  return resultados.filter((complejo) => complejo.precio >= min && complejo.precio <= max);
 }
 export {
     getComplejoId,

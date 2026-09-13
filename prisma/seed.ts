@@ -321,27 +321,27 @@ async function main() {
   // 9. Complejos
  const complejo1 = await prisma.complejo.upsert({
   where: { id: 1 },
-  update: {},
+  update: { imagenUrl: "/assets/foto-complejo-AlAngulo.jpg" },
   create: {
     nombre: "Al Angulo",
     direccion: "Av. Pellegrini 3200",
     localidadId: 102,
     duenoId: dueno1.id,
     encargadoId: encargado1.id,
-    imagenUrl: "https://ejemplo.com/fotos/al-angulo.jpg",
+    imagenUrl: "/assets/foto-complejo-AlAngulo.jpg",
   },
   });
 
   const complejo2 = await prisma.complejo.upsert({
     where: { id: 2 },
-    update: {},
+  update: { imagenUrl: "/assets/foto-complejo-DeVolea.jpg" },
     create: {
       nombre: "Estrella del Sur",
       direccion: "Bv. Oroño 4500",
       localidadId: 102,
       duenoId: dueno2.id,
       encargadoId: encargado2.id,
-      imagenUrl: "https://ejemplo.com/fotos/estrella-sur.jpg",
+      imagenUrl: "/assets/foto-complejo-DeVolea.jpg",
     },
   });
 

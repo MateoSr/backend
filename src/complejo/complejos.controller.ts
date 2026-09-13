@@ -89,13 +89,15 @@ async function obtenerComplejosDisponibles(req: Request, res: Response) {
     const deporte = req.query.deporte as string;
     const fecha = req.query.fecha as string;
     const hora = req.query.hora as string;
+    const min = req.query.min !== undefined ? Number(req.query.min) : undefined;
+    const max = req.query.max !== undefined ? Number(req.query.max) : undefined;
 
-    if (!ciudad || !deporte || !fecha || !hora) {
-      return res.status(400).json({ 
-        message: "Faltan parámetros obligatorios: ciudad, deporte, fecha y hora." 
-      });
-    }
-    const resultados = await buscarComplejosDisponibles({ ciudad, deporte, fecha, hora });
+        if ((min !== undefined && !Number.isFinite(min))
+                || (max !== undefined && !Number.isFinite(max))) {
+                return res.status(400).json({ message: "Los filtros de precio deben ser numericos." });
+        }
+
+        const resultados = await buscarComplejosDisponibles({ ciudad, deporte, fecha, hora, min, max });
     console.log(resultados)
     if(resultados.length === 0) {
       return res.status(404).json({ message: "No se encontraron complejos disponibles con los filtros proporcionados." });
