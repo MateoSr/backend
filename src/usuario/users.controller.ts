@@ -30,8 +30,6 @@ async function obtenerUserCompleto(req:Request,res:Response) {
     try{
 
         const userId = req.usuario?.userId; 
-        console.log("ID del usuario autenticado:", userId);
-
         if (!userId) {
             return res.status(401).json({ message: "Usuario no autenticado en la petición" });
         }

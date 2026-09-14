@@ -1,11 +1,11 @@
-import {getTurnoId,getAllTurnos,postTurno,putTurno,deleteTurno} from './turno.service.js'
+import {getTurnoId,getAllTurnos,postTurno,putTurno,deleteTurno,getTurnoPorComplejo} from './turno.service.js'
 import {type Request,type Response} from 'express'
 import { ZodError } from 'zod'; //modulo que permimte mostrar los errores de tipos de datos
 async function obtenerTurnos(req:Request,res:Response) {
     const {id_cliente} = req.query;
     try{
-        const idClienteNum = id_cliente ? Number(id_cliente) : undefined;
-        const turnos = await getAllTurnos({clienteId: idClienteNum })
+        const userId = req.usuario?.userId; 
+        const turnos = await getAllTurnos({clienteId: userId })
         if(turnos.length === 0){
             return res.status(404).json({message:"No hay turnos"})
         }
@@ -22,6 +22,20 @@ async function obtenerTurno(req:Request,res:Response) {
         const turno = await getTurnoId(Number(id))
         if(!turno){
             return res.status(404).json({message:"No se encontro el turno"})
+        }
+        return res.status(200).json(turno)
+        }catch(error:any)
+        {
+        return res.status(400).json({error:error.message})
+        }
+}
+
+async function obtenerTurnoPorComplejo(req:Request,res:Response) {
+    try{
+        const {id} = req.params
+        const turno = await getTurnoPorComplejo(Number(id))
+        if(!turno){
+            return res.status(404).json({message:"No se encontro turnos para ese complejo"})
         }
         return res.status(200).json(turno)
         }catch(error:any)
@@ -89,5 +103,6 @@ export {
   obtenerTurnos,
   crearTurno,
   modificarTurno,
-  borrarTurno
+  borrarTurno,
+  obtenerTurnoPorComplejo
 };

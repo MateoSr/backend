@@ -4,6 +4,7 @@ import { fa } from "zod/locales";
 
 export interface TurnoSalida extends Turno {
     id: number;
+    
 }
 
 export interface FiltrosTurno {
@@ -46,6 +47,13 @@ async function getTurnoId(id:number): Promise<TurnoSalida | null> {
     return turno || null
 }
 
+async function getTurnoPorComplejo(complejoId:number): Promise<TurnoSalida[] | null>{
+  const turnos = await prisma.turno.findMany({
+    where: {complejoId}
+  })
+  return turnos 
+  
+}
 async function postTurno(turno: Turno): Promise<TurnoSalida> {
   const datosValidados = turnoSchema.parse(turno);
   const nuevoTurno = await prisma.turno.create({
@@ -70,6 +78,40 @@ async function getAllTurnos(filtros: FiltrosTurno = {}): Promise<TurnoSalida[]> 
 
   const turnos = await prisma.turno.findMany({
     where: clienteId && !isNaN(clienteId) ? { clienteId } : {},
+    orderBy: [
+    { fecha: 'desc' },       
+    { horaInicio: 'desc' }   
+    ],
+    select: {
+    id: true,
+    horaInicio: true, 
+    horaFin: true,    
+    fecha: true,
+    estado: true,
+    clienteId: true,
+    tipoTurnoId: true,
+    complejoId: true,
+    canchaNro: true,
+    
+    complejo: {
+      select: {
+        nombre: true,
+      }
+    },
+
+    cancha: {
+      select: {
+        nro: true,
+        
+        tipoCancha: {
+          select: {
+            deporte: true,
+
+          }
+        }
+      }
+    }
+  },
   });
 
   return turnos;
@@ -116,6 +158,7 @@ async function deleteTurno(id:number): Promise<boolean> {
 
 export {
     getTurnoId,
+    getTurnoPorComplejo,
     postTurno,
     getAllTurnos,
     putTurno,
