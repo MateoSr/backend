@@ -1,6 +1,8 @@
 import { turnoSchema, type Turno } from "./turno.schema.js";
 import { prisma } from "../shared/prisma.js";
 import { fa } from "zod/locales";
+import bcrypt from "bcryptjs";
+import { enviarEmailResetPassword } from "../auth/auth.service.js";
 
 export interface TurnoSalida extends Turno {
     id: number;
@@ -31,9 +33,7 @@ function normalizarFechaHora(valor: string | Date): Date {
   
   // Si viene en formato "HH:mm" (ej: "18:00")
   if (/^\d{2}:\d{2}$/.test(valor)) {
-    const [horas, minutos] = valor.split(":").map(Number);
-    const fecha = new Date(1970, 0, 1, horas, minutos);
-    return fecha;
+    return new Date(`1970-01-01T${valor}:00.000Z`);
   }
   
   return new Date(valor);
@@ -71,6 +71,59 @@ async function postTurno(turno: Turno): Promise<TurnoSalida> {
   });
 
   return nuevoTurno;
+}
+
+async function postTurnoComoEncargado(turno: Turno, cliente: { nombre: string; apellido: string; telefono: string; email: string }): Promise<TurnoSalida> {
+  const datosValidados = turnoSchema.omit({ clienteId: true }).parse(turno);
+  const clienteExistente = await prisma.usuario.findUnique({ where: { email: cliente.email } });
+  let clienteId = clienteExistente?.id;
+  let cuentaCreada = false;
+
+  if (!clienteId) {
+    const dni = `TEMP${Date.now()}${Math.floor(Math.random() * 1000)}`;
+    const persona = await prisma.personaFisica.create({
+      data: {
+        dni,
+        nombre: cliente.nombre,
+        apellido: cliente.apellido,
+        fechaNacimiento: new Date("1900-01-01"),
+      },
+    });
+    const password = await bcrypt.hash(`${dni}-${cliente.email}`, 10);
+    const nuevoCliente = await prisma.usuario.create({
+      data: {
+        email: cliente.email,
+        telefono: cliente.telefono,
+        password,
+        tipoUsuarioId: 3,
+        personaFisicaDni: persona.dni,
+      },
+    });
+    clienteId = nuevoCliente.id;
+    cuentaCreada = true;
+  }
+
+  if (cuentaCreada) {
+    try {
+      await enviarEmailResetPassword(cliente.email, clienteId);
+    } catch (error) {
+      console.error("No se pudo enviar el enlace para definir la contraseña:", error);
+    }
+  }
+
+  return prisma.turno.create({
+    data: {
+      clienteId,
+      tipoTurnoId: datosValidados.tipoTurnoId,
+      complejoId: datosValidados.complejoId,
+      canchaNro: datosValidados.canchaNro,
+      fecha: datosValidados.fecha,
+      horaInicio: normalizarFechaHora(datosValidados.horaInicio),
+      horaFin: normalizarFechaHora(datosValidados.horaFin),
+      estado: datosValidados.estado,
+      motivoCancelacion: datosValidados.motivoCancelacion ?? null,
+    },
+  });
 }
 
 async function getAllTurnos(filtros: FiltrosTurno = {}): Promise<TurnoSalida[]> {
@@ -160,6 +213,7 @@ export {
     getTurnoId,
     getTurnoPorComplejo,
     postTurno,
+    postTurnoComoEncargado,
     getAllTurnos,
     putTurno,
     deleteTurno

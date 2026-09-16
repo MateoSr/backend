@@ -1,4 +1,4 @@
-import {getComplejoId,getAllComplejos,postComplejo,putComplejo,deleteComplejo,buscarComplejosDisponibles} from './complejos.service.js'
+import {getComplejoId,getComplejoDelEncargado,getAllComplejos,postComplejo,putComplejo,deleteComplejo,buscarComplejosDisponibles} from './complejos.service.js'
 import { ZodError } from 'zod';
 import {type Request, type Response} from 'express'
 
@@ -28,6 +28,27 @@ async function obtenerComplejo(req: Request, res: Response) {
         {
         return res.status(400).json({error:error.message})
         }
+}
+
+async function obtenerComplejoDelEncargado(req: Request, res: Response) {
+    try {
+        const encargadoId = req.usuario?.userId;
+        if (!encargadoId) {
+            return res.status(401).json({ message: "Usuario no autenticado" });
+        }
+        if (req.usuario?.rol !== "Encargado") {
+            return res.status(403).json({ message: "Solo un encargado puede consultar este panel" });
+        }
+
+        const complejo = await getComplejoDelEncargado(encargadoId);
+        if (!complejo) {
+            return res.status(404).json({ message: "El encargado no tiene un complejo asignado" });
+        }
+
+        return res.status(200).json(complejo);
+    } catch (error: any) {
+        return res.status(400).json({ error: error.message });
+    }
 }
 
 
@@ -110,6 +131,7 @@ async function obtenerComplejosDisponibles(req: Request, res: Response) {
 
 export {
     obtenerComplejo,
+    obtenerComplejoDelEncargado,
     obtenerComplejos,
     crearComplejo,
     modificarComplejo,

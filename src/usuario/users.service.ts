@@ -63,7 +63,20 @@ async function postUser(user: User) {
 
 async function getAllUsers() {
   return await prisma.usuario.findMany({include: { tipoUsuario: true }});
-  
+}
+
+async function getClientes() {
+  return prisma.usuario.findMany({
+    where: { tipoUsuario: { descripcion: "Cliente" } },
+    select: {
+      id: true,
+      email: true,
+      telefono: true,
+      personaFisica: { select: { nombre: true, apellido: true } },
+      personaJuridica: { select: { razonSocial: true } },
+    },
+    orderBy: { email: "asc" },
+  });
 }
 
 async function putUser(id: number, data: Partial<UserUpdate>) {
@@ -121,6 +134,7 @@ export {
   getUserId,
   postUser,
   getAllUsers,
+  getClientes,
   putUser,
   deleteUser,
   getUserEmail,

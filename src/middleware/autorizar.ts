@@ -1,3 +1,5 @@
+import type { Request, Response, NextFunction } from "express";
+
 export interface RequestAutenticado extends Request {
   usuario?: {
     id: number;

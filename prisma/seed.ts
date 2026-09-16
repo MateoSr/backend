@@ -355,9 +355,19 @@ async function main() {
       // Complejo 1: Lunes (1) y Martes (2)
       { complejoId: 1, nroDia: 1, horaApertura: new Date("1970-01-01T14:00:00Z"), horaCierre: new Date("1970-01-01T23:00:00Z") },
       { complejoId: 1, nroDia: 2, horaApertura: new Date("1970-01-01T14:00:00Z"), horaCierre: new Date("1970-01-01T23:00:00Z") },
-      // Complejo 2: Lunes (1) y Martes (2)
+      { complejoId: 1, nroDia: 3, horaApertura: new Date("1970-01-01T14:00:00Z"), horaCierre: new Date("1970-01-01T23:00:00Z") },
+      { complejoId: 1, nroDia: 4, horaApertura: new Date("1970-01-01T14:00:00Z"), horaCierre: new Date("1970-01-01T23:00:00Z") },
+      { complejoId: 1, nroDia: 5, horaApertura: new Date("1970-01-01T14:00:00Z"), horaCierre: new Date("1970-01-01T23:00:00Z") },
+      { complejoId: 1, nroDia: 6, horaApertura: new Date("1970-01-01T14:00:00Z"), horaCierre: new Date("1970-01-01T23:00:00Z") },
+      { complejoId: 1, nroDia: 7, horaApertura: new Date("1970-01-01T14:00:00Z"), horaCierre: new Date("1970-01-01T23:00:00Z") },
+      // Complejo 2: Lunes (1) a Domingo (7)
       { complejoId: 2, nroDia: 1, horaApertura: new Date("1970-01-01T16:00:00Z"), horaCierre: new Date("1970-01-01T00:00:00Z") },
       { complejoId: 2, nroDia: 2, horaApertura: new Date("1970-01-01T16:00:00Z"), horaCierre: new Date("1970-01-01T00:00:00Z") },
+      { complejoId: 2, nroDia: 3, horaApertura: new Date("1970-01-01T16:00:00Z"), horaCierre: new Date("1970-01-01T00:00:00Z") },
+      { complejoId: 2, nroDia: 4, horaApertura: new Date("1970-01-01T16:00:00Z"), horaCierre: new Date("1970-01-01T00:00:00Z") },
+      { complejoId: 2, nroDia: 5, horaApertura: new Date("1970-01-01T16:00:00Z"), horaCierre: new Date("1970-01-01T00:00:00Z") },
+      { complejoId: 2, nroDia: 6, horaApertura: new Date("1970-01-01T16:00:00Z"), horaCierre: new Date("1970-01-01T00:00:00Z") },
+      { complejoId: 2, nroDia: 7, horaApertura: new Date("1970-01-01T16:00:00Z"), horaCierre: new Date("1970-01-01T00:00:00Z") },
     ],
     skipDuplicates: true,
   });
