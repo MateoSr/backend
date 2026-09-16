@@ -43,7 +43,8 @@ async function putCancha(nro: number, id_complejo: number, canchaNueva: unknown)
                 }
             },
             data: {
-                tipoCanchaId: datosValidados.tipoCanchaId
+                tipoCanchaId: datosValidados.tipoCanchaId,
+                estado: datosValidados.estado
             }
         });
         return canchaActualizada;
@@ -54,18 +55,22 @@ async function putCancha(nro: number, id_complejo: number, canchaNueva: unknown)
 
 async function deleteCancha(nro: number, id_complejo: number): Promise<boolean> {
     try {
-        await prisma.cancha.delete({
-            where: {
-                complejoId_nro: {
-                    complejoId: id_complejo,
-                    nro: nro
-                }
-            }
-        });
-        return true;
-    } catch (error) {
-        return false;
-    }
+    await prisma.cancha.update({
+      where: {
+        complejoId_nro: {
+          complejoId: id_complejo,
+          nro: nro,
+        },
+      },
+      data: {
+        estado: "Inactivo", 
+      }as any,
+    });
+    return true;
+  } catch (error) {
+    console.error("Error al desactivar la cancha:", error);
+    throw error;
+  }
 }
 
 export {

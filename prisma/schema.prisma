@@ -79,6 +79,8 @@ model Complejo {
   id          Int       @id @default(autoincrement())
   direccion   String
   nombre      String
+  telefono    String
+  instagram   String?
   imagenUrl   String?
   localidadId Int
   encargadoId Int       @unique // Único para la relación 1 a 1
@@ -109,6 +111,7 @@ model Cancha {
   nro          Int
   complejoId   Int
   tipoCanchaId Int
+  estado String @default("Activo")
 
   complejo     Complejo   @relation(fields: [complejoId], references: [id], onDelete: Cascade)
   tipoCancha   TipoCancha @relation(fields: [tipoCanchaId], references: [id])

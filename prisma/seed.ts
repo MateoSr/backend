@@ -325,6 +325,8 @@ async function main() {
   create: {
     nombre: "Al Angulo",
     direccion: "Av. Pellegrini 3200",
+    telefono: '3444123123',
+    instagram: 'Alangulo',
     localidadId: 102,
     duenoId: dueno1.id,
     encargadoId: encargado1.id,
@@ -338,6 +340,8 @@ async function main() {
     create: {
       nombre: "Estrella del Sur",
       direccion: "Bv. Oroño 4500",
+      telefono: '3456123123',
+      instagram: 'Sacalafc',
       localidadId: 102,
       duenoId: dueno2.id,
       encargadoId: encargado2.id,
@@ -362,12 +366,14 @@ async function main() {
   await prisma.cancha.createMany({
     data: [
       // Canchas Complejo 1
-      { nro: 1, complejoId: 1, tipoCanchaId: 2 }, // Futbol 5
-      { nro: 2, complejoId: 1, tipoCanchaId: 3 }, // Futbol 7
-      { nro: 3, complejoId: 1, tipoCanchaId: 5 }, // Pádel
+      { nro: 1, complejoId: 1, tipoCanchaId: 2 ,estado:'activo'}, // Futbol 5
+      { nro: 2, complejoId: 1, tipoCanchaId: 3 ,estado:'activo'}, // Futbol 7
+      { nro: 3, complejoId: 1, tipoCanchaId: 5 ,estado:'activo'}, // Pádel
+      { nro: 4, complejoId: 1, tipoCanchaId: 1 ,estado:'inactivo'}, // Pádel
+
       // Canchas Complejo 2
-      { nro: 1, complejoId: 2, tipoCanchaId: 2 }, // Futbol 5
-      { nro: 2, complejoId: 2, tipoCanchaId: 6 }, // Tenis
+      { nro: 1, complejoId: 2, tipoCanchaId: 2 ,estado:'activo'}, // Futbol 5
+      { nro: 2, complejoId: 2, tipoCanchaId: 6 ,estado:'activo'}, // Tenis
     ],
     skipDuplicates: true,
   });
@@ -378,6 +384,7 @@ async function main() {
       { complejoId: 1, canchaNro: 1, fechaDesde: new Date("2026-01-01"), precioBase: 25000.00, precioAdicional: 3000.00, precioSena: 10000.00 },
       { complejoId: 1, canchaNro: 2, fechaDesde: new Date("2026-01-01"), precioBase: 35000.00, precioAdicional: 4000.00, precioSena: 15000.00 },
       { complejoId: 1, canchaNro: 3, fechaDesde: new Date("2026-01-01"), precioBase: 20000.00, precioAdicional: 2000.00, precioSena: 8000.00 },
+      { complejoId: 1, canchaNro: 4, fechaDesde: new Date("2026-01-01"), precioBase: 20000.00, precioAdicional: 2000.00, precioSena: 8000.00 },
       { complejoId: 2, canchaNro: 1, fechaDesde: new Date("2026-01-01"), precioBase: 24000.00, precioAdicional: 2500.00, precioSena: 10000.00 },
       { complejoId: 2, canchaNro: 2, fechaDesde: new Date("2026-01-01"), precioBase: 22000.00, precioAdicional: 2000.00, precioSena: 9000.00 },
     ],

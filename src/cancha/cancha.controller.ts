@@ -44,6 +44,7 @@ async function crearCancha(req: Request, res: Response) {
 
         }catch(error:any)
         {
+        console.log(error)
         if (error instanceof ZodError) {
         return res.status(400).json({
             message: "Error de validación en los datos ingresados",})
@@ -75,6 +76,7 @@ async function borrarCancha(req: Request, res: Response) {
     try{
         const {id_complejo} = req.params
         const {nro} = req.params
+        console.log(id_complejo,nro)
         const response = await deleteCancha(Number(nro), Number(id_complejo))
         if(!response){
             return res.status(404).json({message:"No se encontro la cancha"})

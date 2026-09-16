@@ -31,8 +31,10 @@ async function obtenerPrecio(req: Request, res: Response) {
 
 async function crearPrecio(req: Request, res: Response) {
     try{
+        const {id_complejo,nro_cancha} =req.params
         const precio = req.body
-        const resultado = await postPrecio(precio)
+        const precioPost = {id_complejo:Number(id_complejo),nro_cancha:Number(nro_cancha), ...precio}
+        const resultado = await postPrecio(precioPost)
         return res.status(201).json({
             message: 'Precio creado correctamente',
             precio: resultado
@@ -41,6 +43,7 @@ async function crearPrecio(req: Request, res: Response) {
         }catch(error:any)
         {
         if (error instanceof ZodError) {
+            console.log(error)
         return res.status(400).json({
             message: "Error de validación en los datos ingresados",})
         }

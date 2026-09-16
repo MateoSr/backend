@@ -41,6 +41,7 @@ async function crearHorario(req: Request, res: Response) {
             horario: horario
         })
     }catch(error:any) {
+        console.log(error)
         if (error instanceof ZodError) {
         return res.status(400).json({
             message: "Error de validación en los datos ingresados",})

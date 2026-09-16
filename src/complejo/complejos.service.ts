@@ -1,5 +1,4 @@
 import { complejoSchema,type Complejo } from "./complejos.schema.js";
-import { proximoId } from "../shared/funciones.js";
 import { prisma } from "../shared/prisma.js";
 
 export interface ComplejoSalida extends Complejo {
@@ -25,6 +24,12 @@ async function getComplejoId(id: number): Promise<ComplejoSalida | null> {
         include: {
           tipoCancha: true,
           turnos: true,
+          precios: {
+            orderBy: {
+              fechaDesde: 'desc', // Ordena del más reciente al más antiguo
+            },
+            take: 1, // Trae únicamente el primero (el más nuevo)
+          },
         },
       },
     },
@@ -166,11 +171,7 @@ async function buscarComplejosDisponibles(filtros: BusquedaFiltros): Promise<any
     },
   });
 
-  // Grilla base de horarios (se puede ajustar según los horarios del complejo)
-  const todosLosHorarios = [
-    "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", 
-    "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00"
-  ];
+
 
   // Mapeamos los datos para devolver la estructura limpia que pide el Frontend
   const resultados = complejosDisponibles.map((complejo) => {
@@ -179,15 +180,8 @@ async function buscarComplejosDisponibles(filtros: BusquedaFiltros): Promise<any
     //obtenemos el precio de esa cancha
     const precioVigente = Number(cancha?.precios[0]?.precioBase ?? 0);
 
-    // Extraemos las horas que están ocupadas ese día
-    const horasOcupadas = cancha?.turnos.map((t) => 
-      t.horaInicio.toISOString().substring(11, 16)
-    ) || [];
 
-    // Filtramos las horas libres excluyendo las ocupadas
-    const horariosLibres = todosLosHorarios.filter(
-      (h) => !horasOcupadas.includes(h)
-    );
+    
 
     //ajustamos lo q devuelve para coincidir con lo que requiere el front
     return {
@@ -196,7 +190,8 @@ async function buscarComplejosDisponibles(filtros: BusquedaFiltros): Promise<any
       direccion: `${complejo.direccion}, ${complejo.localidad.nombre}`,
       precio: precioVigente,
       imagenUrl: complejo.imagenUrl ?? "https://via.placeholder.com/300x200",
-      disponibilidad: horariosLibres.map((h) => ({ time: h })),
+      instagram: complejo.instagram ?? null,
+      telefono: complejo.telefono
     };
   });
 
