@@ -65,6 +65,7 @@ async function crearUser(req:Request,res:Response) {
         const user = req.body
         const resultado = await postUser(user)
         if(!resultado){
+
             return res.status(401).json({
                 error: 'Erorr'
             })
@@ -77,6 +78,7 @@ async function crearUser(req:Request,res:Response) {
         }catch(error:any)
         {
         if (error instanceof ZodError) {
+            console.log(error);
         return res.status(400).json({
             message: "Error de validación en los datos ingresados",
             detalles: error.issues});
