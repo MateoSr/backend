@@ -1,4 +1,4 @@
-import {getTurnoId,getAllTurnos,postTurno,putTurno,deleteTurno,getTurnoPorComplejo} from './turno.service.js'
+import {getTurnoId,getAllTurnos,postTurno,postTurnoComoEncargado,putTurno,deleteTurno,getTurnoPorComplejo} from './turno.service.js'
 import {type Request,type Response} from 'express'
 import { ZodError } from 'zod'; //modulo que permimte mostrar los errores de tipos de datos
 async function obtenerTurnos(req:Request,res:Response) {
@@ -64,6 +64,23 @@ async function crearTurno(req:Request,res:Response) {
         }
 }
 
+async function crearTurnoComoEncargado(req:Request,res:Response) {
+    if (req.usuario?.rol !== "Encargado") {
+        return res.status(403).json({ message: "Solo un encargado puede agendar de esta forma" });
+    }
+
+    try {
+        const { cliente, turno } = req.body;
+        const resultado = await postTurnoComoEncargado(turno, cliente);
+        return res.status(201).json({ message: 'Turno agendado correctamente', turno: resultado });
+    } catch(error:any) {
+        if (error instanceof ZodError) {
+            return res.status(400).json({ message: "Error de validación en los datos ingresados", detalles: error.issues });
+        }
+        return res.status(400).json({error:error.message});
+    }
+}
+
 async function modificarTurno(req:Request,res:Response) {
     try{
         const {id} = req.params
@@ -102,6 +119,7 @@ export {
   obtenerTurno,
   obtenerTurnos,
   crearTurno,
+    crearTurnoComoEncargado,
   modificarTurno,
   borrarTurno,
   obtenerTurnoPorComplejo

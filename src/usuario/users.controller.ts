@@ -1,4 +1,4 @@
-import {getAllUsers,getUserId,postUser,deleteUser,putUser} from "./users.service.js"
+import {getAllUsers,getClientes,getUserId,postUser,deleteUser,putUser} from "./users.service.js"
 import {getPersonaFisicaDni} from "../personaFisica/personaFisica.service.js";
 import { ZodError } from 'zod'; //modulo que permimte mostrar los errores de tipos de datos
 import { type Request, type Response } from "express";
@@ -8,6 +8,18 @@ async function obtenerUsers(req:Request,res:Response) {
         const users = await getAllUsers()
         return res.status(200).json(users)
         }catch(error:any){
+        return res.status(400).json({error:error.message})
+    }
+}
+
+async function obtenerClientes(req:Request,res:Response) {
+    if (req.usuario?.rol !== "Encargado") {
+        return res.status(403).json({ message: "Solo un encargado puede consultar clientes" });
+    }
+
+    try {
+        return res.status(200).json(await getClientes())
+    } catch(error:any) {
         return res.status(400).json({error:error.message})
     }
 }
@@ -130,6 +142,7 @@ async function borrarUser(req:Request,res:Response) {
 
 export {
   obtenerUsers,
+    obtenerClientes,
   obtenerUser,
   crearUser,
   borrarUser,

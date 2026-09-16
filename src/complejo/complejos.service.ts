@@ -14,6 +14,20 @@ interface BusquedaFiltros {
   max?: number;
 }
 
+function minutosDesdeHora(valor: Date | string): number {
+  if (valor instanceof Date) {
+    return valor.getUTCHours() * 60 + valor.getUTCMinutes();
+  }
+
+  const coincidencia = valor.match(/(?:T|^)(\d{1,2}):(\d{2})/);
+  return coincidencia ? Number(coincidencia[1]) * 60 + Number(coincidencia[2]) : 0;
+}
+
+function diaDeLaSemana(fecha: Date): number {
+  const dia = fecha.getUTCDay();
+  return dia === 0 ? 7 : dia;
+}
+
 
 async function getComplejoId(id: number): Promise<ComplejoSalida | null> {
   const complejo = await prisma.complejo.findUnique({
@@ -30,6 +44,39 @@ async function getComplejoId(id: number): Promise<ComplejoSalida | null> {
     },
   });
   return complejo;
+}
+
+async function getComplejoDelEncargado(encargadoId: number) {
+  return prisma.complejo.findUnique({
+    where: { encargadoId },
+    include: {
+      localidad: true,
+      horarios: true,
+      canchas: {
+        include: {
+          tipoCancha: true,
+          turnos: {
+            where: { estado: { not: "CANCELADO" } },
+            orderBy: [{ fecha: "asc" }, { horaInicio: "asc" }],
+            include: {
+              cliente: {
+                select: {
+                  email: true,
+                  telefono: true,
+                  personaFisica: {
+                    select: { nombre: true, apellido: true },
+                  },
+                  personaJuridica: {
+                    select: { razonSocial: true },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
 }
 
 async function postComplejo(complejo: Complejo): Promise<ComplejoSalida> {
@@ -78,6 +125,7 @@ async function deleteComplejo(id: number): Promise<boolean> {
 async function buscarComplejosDisponibles(filtros: BusquedaFiltros): Promise<any[]> {
   //agarramos filtros
   const { ciudad, deporte, fecha, hora, min = 0, max = Infinity } = filtros;
+  const ciudadNormalizada = ciudad?.trim();
 
   //convertimos a fechas
   const fechaDate = fecha ? new Date(`${fecha}T00:00:00.000Z`) : new Date();
@@ -88,10 +136,10 @@ async function buscarComplejosDisponibles(filtros: BusquedaFiltros): Promise<any
   const complejosDisponibles = await prisma.complejo.findMany({
     where: {
       //buscamos la localidad correspondiente
-      ...(ciudad ? {
+      ...(ciudadNormalizada ? {
         localidad: {
           nombre: {
-            equals: ciudad,
+            contains: ciudadNormalizada,
             mode: "insensitive",
           },
         },
@@ -121,20 +169,10 @@ async function buscarComplejosDisponibles(filtros: BusquedaFiltros): Promise<any
     //con el include traemos la localidad,y las canchas que tengan disponibilidad
     include: {
       localidad: true,
+      horarios: true,
       canchas: {
         where: {
           ...(deporte ? { tipoCanchaId: Number(deporte) } : {}),
-          ...(buscaDisponibilidad ? {
-            turnos: {
-              none: {
-                fecha: fechaDate,
-                horaInicio: horaInicioDate!,
-                estado: {
-                  not: "CANCELADO",
-                },
-              },
-            },
-          } : {}),
         },
         include: {
           tipoCancha: true,
@@ -166,44 +204,70 @@ async function buscarComplejosDisponibles(filtros: BusquedaFiltros): Promise<any
     },
   });
 
-  // Grilla base de horarios (se puede ajustar según los horarios del complejo)
-  const todosLosHorarios = [
-    "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", 
-    "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00"
-  ];
-
   // Mapeamos los datos para devolver la estructura limpia que pide el Frontend
-  const resultados = complejosDisponibles.map((complejo) => {
-    //toma la primer cancha encontra
-    const cancha = complejo.canchas[0];
+  const resultados = complejosDisponibles.flatMap((complejo) => {
+    const horario = complejo.horarios.find((item) => item.nroDia === diaDeLaSemana(fechaDate));
+    if (!horario) return [];
+
+    const apertura = minutosDesdeHora(horario.horaApertura);
+    let cierre = minutosDesdeHora(horario.horaCierre);
+    if (cierre <= apertura) cierre += 24 * 60;
+
+    const canchasDisponibles = complejo.canchas.filter((cancha) => {
+      if (!buscaDisponibilidad) return true;
+
+      const inicio = minutosDesdeHora(horaInicioDate!);
+      const duracion = Number(cancha.tipoCancha?.duracion) || 60;
+      const fin = inicio + duracion;
+      const tieneHorario = inicio >= apertura && fin <= cierre;
+      const tieneTurno = cancha.turnos.some((turno) => {
+        const turnoInicio = minutosDesdeHora(turno.horaInicio);
+        let turnoFin = minutosDesdeHora(turno.horaFin);
+        if (turnoFin <= turnoInicio) turnoFin += 24 * 60;
+        return inicio < turnoFin && fin > turnoInicio;
+      });
+      return tieneHorario && !tieneTurno;
+    });
+
+    if (canchasDisponibles.length === 0) return [];
+
+    const cancha = canchasDisponibles[0];
     //obtenemos el precio de esa cancha
     const precioVigente = Number(cancha?.precios[0]?.precioBase ?? 0);
 
-    // Extraemos las horas que están ocupadas ese día
-    const horasOcupadas = cancha?.turnos.map((t) => 
-      t.horaInicio.toISOString().substring(11, 16)
-    ) || [];
-
-    // Filtramos las horas libres excluyendo las ocupadas
-    const horariosLibres = todosLosHorarios.filter(
-      (h) => !horasOcupadas.includes(h)
-    );
+    const duracion = Number(cancha.tipoCancha?.duracion) || 60;
+    const horariosLibres = [];
+    for (let inicio = apertura; inicio + duracion <= cierre; inicio += duracion) {
+      const fin = inicio + duracion;
+      const ocupado = cancha.turnos.some((turno) => {
+        const turnoInicio = minutosDesdeHora(turno.horaInicio);
+        let turnoFin = minutosDesdeHora(turno.horaFin);
+        if (turnoFin <= turnoInicio) turnoFin += 24 * 60;
+        return inicio < turnoFin && fin > turnoInicio;
+      });
+      if (!ocupado) {
+        const horas = String(Math.floor(inicio / 60) % 24).padStart(2, "0");
+        const minutos = String(inicio % 60).padStart(2, "0");
+        horariosLibres.push(`${horas}:${minutos}`);
+      }
+    }
 
     //ajustamos lo q devuelve para coincidir con lo que requiere el front
-    return {
+    return [{
       id: complejo.id,
       nombre: complejo.nombre,
       direccion: `${complejo.direccion}, ${complejo.localidad.nombre}`,
       precio: precioVigente,
       imagenUrl: complejo.imagenUrl ?? "https://via.placeholder.com/300x200",
       disponibilidad: horariosLibres.map((h) => ({ time: h })),
-    };
+    }];
   });
 
   return resultados.filter((complejo) => complejo.precio >= min && complejo.precio <= max);
 }
 export {
     getComplejoId,
+  getComplejoDelEncargado,
     postComplejo,
     getAllComplejos,
     putComplejo,
