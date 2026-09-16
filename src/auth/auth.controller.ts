@@ -3,6 +3,7 @@ import {getPersonaFisicaDni,postPersonaFisica} from '../personaFisica/personaFis
 import { ZodError } from 'zod';
 import { type Request, type Response } from "express";
 import {enviarEmailResetPassword, login, loginAdmin, resetPassword} from './auth.service.js' 
+import { getPersonaJuridicaCuit, postPersonaJuridica } from '../personaJuridica/personaJuridica.service.js';
 
 
 async function iniciarSesion(req: Request, res: Response) {
@@ -42,7 +43,7 @@ async function registrar(req: Request, res: Response) {
             email:email,
             password:password,
             telefono:telefono,
-            tipoUsuarioId:4
+            tipoUsuarioId:3
         }
      
         const persona ={

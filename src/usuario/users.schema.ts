@@ -7,8 +7,8 @@ export const userSchema = z.object({
   telefono: z.string().min(1, "El telefono es un campo obligatorio"),
   password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres"),
   tipoUsuarioId: z.number().int("El id debe ser un numero entero").positive("El id debe ser un número positivo"),
-  personaFisicaDni: z.string().min(7, "El dni debe tener como minimo 7 caracteres").optional(),
-  personaJuridicaCuit: z.string().min(11, "El cuit debe tener como minimo 11 caracteres").optional()
+  personaFisicaDni: z.string().min(7, "El dni debe tener como minimo 7 caracteres").nullable().optional(),
+  personaJuridicaCuit: z.string().min(11, "El cuit debe tener como minimo 11 caracteres").nullable().optional()
 }).strict();;
 
 export const userUpdateSchema = z.object({
