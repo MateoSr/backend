@@ -209,6 +209,81 @@ async function deleteTurno(id:number): Promise<boolean> {
     }
 }
 
+export async function getEstadisticasHoyDueno(duenoId: number) {
+  const hoyInicio = new Date();
+  hoyInicio.setHours(0, 0, 0, 0);
+
+  const hoyFin = new Date();
+  hoyFin.setHours(23, 59, 59, 999);
+
+  // 1. Ejecutamos las consultas en paralelo
+  const [turnosHoy, canchasActivas] = await Promise.all([
+    // Consultar turnos de hoy con tipoCancha para saber el deporte
+    prisma.turno.findMany({
+      where: {
+        fecha: { gte: hoyInicio, lte: hoyFin },
+        estado: { notIn: ['Cancelado', 'Cancelada'] },
+        complejo: { duenoId },
+        cancha: { estado: { notIn: ['Inactivo', 'Inactiva'] } },
+      },
+      include: {
+        cancha: {
+          include: {
+            tipoCancha: true,
+            precios: {
+              orderBy: { fechaDesde: 'desc' },
+              take: 1,
+            },
+          },
+        },
+      },
+    }),
+
+    // Consultar cantidad de canchas activas en total
+    prisma.cancha.count({
+      where: {
+        complejo: { duenoId },
+        estado: { notIn: ['Inactivo', 'Inactiva'] },
+      },
+    }),
+  ]);
+
+  // Calculo cantidad de turnos de hoy
+  const cantidadTurnos = turnosHoy.length;
+
+  //Calculo de ingresos hoy
+  const ingresosEstimados = turnosHoy.reduce((total, turno) => {
+    const ultimoPrecio = turno.cancha?.precios[0];
+    const precioTurno = ultimoPrecio ? ultimoPrecio.precioBase.toNumber() : 0;
+    return total + precioTurno;
+  }, 0);
+  // Cálculo del deporte estrella
+  const conteoDeportes: Record<string, number> = {};
+  turnosHoy.forEach((turno) => {
+    const deporte = turno.cancha?.tipoCancha?.deporte || 'Sin especificar';
+    conteoDeportes[deporte] = (conteoDeportes[deporte] || 0) + 1;
+  });
+
+  let deporteEstrella = 'Sin reservas';
+  let maxReservas = 0;
+
+  Object.entries(conteoDeportes).forEach(([deporte, cantidad]) => {
+    if (cantidad > maxReservas) {
+      maxReservas = cantidad;
+      deporteEstrella = deporte;
+    }
+  });
+
+  return {
+    cantidadTurnos,
+    ingresosEstimados,
+    deporteEstrella: {
+      nombre: deporteEstrella,
+      reservas: maxReservas,
+    },
+  };
+}
+
 export {
     getTurnoId,
     getTurnoPorComplejo,

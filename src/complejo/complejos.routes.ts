@@ -1,5 +1,5 @@
 import { Router } from "express";
-import {obtenerComplejo,obtenerComplejoDelEncargado,obtenerComplejos,crearComplejo,modificarComplejo,borrarComplejo,obtenerComplejosDisponibles} from "./complejos.controller.js"
+import {obtenerComplejo,obtenerComplejoDelEncargado,obtenerComplejos,crearComplejo,modificarComplejo,borrarComplejo,obtenerComplejosDisponibles,obtenerComplejoDelDueno} from "./complejos.controller.js"
 import { autenticar } from "../middleware/autenticas.js";
 import {obtenerHorario,obtenerHorarios,crearHorario,modificarHorario,borrarHorario} from "../horario/horario.controller.js"
 import {obtenerCancha,crearCancha,modificarCancha,borrarCancha, obtenerCanchas} from "../cancha/cancha.controller.js"
@@ -9,6 +9,8 @@ const complejoRouter = Router()
 //Busqueda de complejos de una ciudad de un deporte de una fecha y hora determinada
 complejoRouter.get("/busqueda", obtenerComplejosDisponibles);
 complejoRouter.get("/encargado", autenticar, obtenerComplejoDelEncargado);
+complejoRouter.get("/dueno", autenticar, obtenerComplejoDelDueno);
+
 
 
 

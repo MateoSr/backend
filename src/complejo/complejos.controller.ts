@@ -1,4 +1,4 @@
-import {getComplejoId,getComplejoDelEncargado,getAllComplejos,postComplejo,putComplejo,deleteComplejo,buscarComplejosDisponibles} from './complejos.service.js'
+import {getComplejoId,getComplejoDelEncargado,getAllComplejos,postComplejo,putComplejo,deleteComplejo,buscarComplejosDisponibles, getComplejoDelDueno} from './complejos.service.js'
 import { ZodError } from 'zod';
 import {type Request, type Response} from 'express'
 
@@ -51,6 +51,25 @@ async function obtenerComplejoDelEncargado(req: Request, res: Response) {
     }
 }
 
+async function obtenerComplejoDelDueno(req: Request, res: Response) {
+    try {
+        const duenoId = req.usuario?.userId;
+        if (!duenoId) {
+            return res.status(401).json({ message: "Usuario no autenticado" });
+        }
+        if (req.usuario?.rol !== "Dueño") {
+            return res.status(403).json({ message: "Solo un Dueño puede consultar este panel" });
+        }
+
+        const complejo = await getComplejoDelDueno(duenoId);
+        if (!complejo) {
+            return res.status(404).json({ message: "El Dueño no tiene un complejo asignado" });
+        }
+        return res.status(200).json(complejo);
+    } catch (error: any) {
+        return res.status(400).json({ error: error.message });
+    }
+}
 
 async function crearComplejo(req: Request, res: Response) {
     try{
@@ -132,6 +151,7 @@ async function obtenerComplejosDisponibles(req: Request, res: Response) {
 export {
     obtenerComplejo,
     obtenerComplejoDelEncargado,
+    obtenerComplejoDelDueno,
     obtenerComplejos,
     crearComplejo,
     modificarComplejo,

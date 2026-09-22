@@ -1,5 +1,6 @@
 import { complejoSchema,type Complejo } from "./complejos.schema.js";
 import { prisma } from "../shared/prisma.js";
+import { turnoSchema } from "../turno/turno.schema.js";
 
 export interface ComplejoSalida extends Complejo {
     id: number;
@@ -25,6 +26,15 @@ function minutosDesdeHora(valor: Date | string): number {
 function diaDeLaSemana(fecha: Date): number {
   const dia = fecha.getUTCDay();
   return dia === 0 ? 7 : dia;
+}
+
+//funcion de ayuda para los minutos de los horarios
+function obtenerMinutosDesdeMedianoche(hora: Date | string): number {
+  if (hora instanceof Date) {
+    return hora.getUTCHours() * 60 + hora.getUTCMinutes();
+  }
+  const [h, m] = hora.split(':').map(Number);
+  return h * 60 + m;
 }
 
 
@@ -83,7 +93,32 @@ async function getComplejoDelEncargado(encargadoId: number) {
     },
   });
 }
+async function getComplejoDelDueno(duenoId: number) {
+  const complejos = await prisma.complejo.findMany({
+    where: { duenoId },
+    include: {
+      localidad: true,
+      canchas: {
+        where: { estado: { not: 'Inactivo' } },
+        include: {
+          tipoCancha: true
+        }
+      }
+    }
+  });
 
+  return complejos.map((complejo) => {
+    // Extraemos los nombres de tipoCancha y eliminamos duplicados con Set
+    const deportesUnicos = Array.from(
+      new Set(complejo.canchas.map((cancha) => cancha.tipoCancha.deporte))
+    );
+
+    return {
+      ...complejo,
+      deportes: deportesUnicos
+    };
+  });
+}
 async function postComplejo(complejo: Complejo): Promise<ComplejoSalida> {
   const datosValidados = complejoSchema.parse(complejo);
 
@@ -153,6 +188,9 @@ async function buscarComplejosDisponibles(filtros: BusquedaFiltros): Promise<any
       ...(deporte ? {
         canchas: {
           some: {
+            estado: {
+              notIn: ['Inactivo', 'Inactiva'],
+            },
             //buscamos alguna con el id deporte del filtro
             tipoCanchaId: Number(deporte),
             ...(buscaDisponibilidad ? {
@@ -177,6 +215,9 @@ async function buscarComplejosDisponibles(filtros: BusquedaFiltros): Promise<any
       horarios: true,
       canchas: {
         where: {
+          estado: {
+            notIn: ['Inactivo', 'Inactiva'],
+          },
           ...(deporte ? { tipoCanchaId: Number(deporte) } : {}),
         },
         include: {
@@ -271,12 +312,87 @@ async function buscarComplejosDisponibles(filtros: BusquedaFiltros): Promise<any
 
   return resultados.filter((complejo) => complejo.precio >= min && complejo.precio <= max);
 }
+
+async function getTurnosPosiblesPorDia(complejoId: number, fecha: Date): Promise<number> {
+  // obtenemos nro del dia de hoy
+  const nroDia = fecha.getDay();
+
+  // query
+  const complejo = await prisma.complejo.findUnique({
+    where: { id: complejoId },
+    include: {
+      canchas: {
+        where: {
+          estado: { notIn: ['Inactivo', 'Inactiva'] },
+        },
+        include:{
+          tipoCancha:true
+        }
+      },
+      // horario del nro de hoy
+      horarios: {
+        where: {
+          nroDia: nroDia,
+        },
+      },
+    },
+  });
+
+  const horarioDelDia = complejo?.horarios[0];
+
+  // si no hay complejo/canchas/horarios
+  if (!complejo || complejo.canchas.length === 0 || !horarioDelDia) {
+    return 0;
+  }
+  // duracion turno
+  const duracionTurnoMinutos = 60
+
+ const minutosApertura = obtenerMinutosDesdeMedianoche(horarioDelDia.horaApertura);
+ let minutosCierre = obtenerMinutosDesdeMedianoche(horarioDelDia.horaCierre);
+
+  // Si cierra pasadas las 00:00 hs (ej: abre 18:00 y cierra 02:00)
+  if (minutosCierre <= minutosApertura) {
+    minutosCierre += 24 * 60;
+  }
+
+  // 5. Calcular turnos totales por cancha y multiplicar por las canchas activas
+  const minutosAbierto = minutosCierre - minutosApertura;
+  const turnosPorCancha = Math.floor(minutosAbierto / duracionTurnoMinutos);
+
+  return turnosPorCancha * complejo.canchas.length;
+}
+
+async function getCapacidadTotalDuenoPorDia(duenoId: number,fecha: Date = new Date()): Promise<number> {
+  // todos complejos del dueno
+  const complejos = await prisma.complejo.findMany({
+    where: { duenoId: duenoId },
+    select: { id: true },
+  });
+  // no hay complejo da error
+  if (complejos.length === 0) {
+    return 0;
+  }
+
+  // calculo capacidad de cada complejos con getTurnosPosiblesPorDia
+  const capacidades = await Promise.all(
+    complejos.map((complejo) => getTurnosPosiblesPorDia(complejo.id, fecha))
+  );
+
+  // sumar las capacidades 
+  const capacidadTotal = capacidades.reduce((total, capacidadComplejo) => {
+    return total + capacidadComplejo;
+  }, 0);
+
+  return capacidadTotal;
+}
 export {
     getComplejoId,
-  getComplejoDelEncargado,
+    getComplejoDelEncargado,
+    getComplejoDelDueno,
     postComplejo,
     getAllComplejos,
     putComplejo,
     deleteComplejo,
-    buscarComplejosDisponibles
+    buscarComplejosDisponibles,
+    getCapacidadTotalDuenoPorDia
 }

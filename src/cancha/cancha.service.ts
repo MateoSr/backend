@@ -73,10 +73,20 @@ async function deleteCancha(nro: number, id_complejo: number): Promise<boolean> 
   }
 }
 
+async function getCantidadCanchasTotalesDueno(duenoId: number): Promise<number> {
+  return await prisma.cancha.count({
+    where: {
+      estado: { notIn: ['Inactivo', 'Inactiva'] },
+      complejo: { duenoId: duenoId },
+    },
+  });
+}
+
 export {
     getCanchaNro,
     postCancha,
     getAllCanchas,
     putCancha,
-    deleteCancha
+    deleteCancha,
+    getCantidadCanchasTotalesDueno
 }
