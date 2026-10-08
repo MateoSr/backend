@@ -7,20 +7,19 @@ datasource db {
 }
 
 model Provincia {
-  id          Int         @id @default(autoincrement())
-  nombre      String
+  id         Int         @id @default(autoincrement())
+  nombre     String
   localidades Localidad[]
 
   @@map("provincia")
 }
 
 model Localidad {
-  id           Int        @id @default(autoincrement())
+  id           Int       @id @default(autoincrement())
   nombre       String
   codigoPostal String
   provinciaId  Int
-  
-  provincia    Provincia  @relation(fields: [provinciaId], references: [id])
+  provincia    Provincia @relation(fields: [provinciaId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "localidad_provinciaId_fkey")
   complejos    Complejo[]
 
   @@map("localidad")
@@ -31,17 +30,15 @@ model PersonaFisica {
   nombre          String
   apellido        String
   fechaNacimiento DateTime  @db.Date
-  
   usuarios        Usuario[]
 
   @@map("personaFisica")
 }
 
 model PersonaJuridica {
-  cuit        String    @id
-  razonSocial String
-  
-  usuarios    Usuario[]
+  cuit         String    @id
+  razonSocial  String
+  usuarios     Usuario[]
 
   @@map("personaJuridica")
 }
@@ -49,7 +46,6 @@ model PersonaJuridica {
 model TipoUsuario {
   id          Int       @id @default(autoincrement())
   descripcion String
-  
   usuarios    Usuario[]
 
   @@map("tipoUsuario")
@@ -61,48 +57,43 @@ model Usuario {
   telefono            String
   password            String
   tipoUsuarioId       Int
+  tipoUsuario         TipoUsuario      @relation(fields: [tipoUsuarioId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "usuario_tipoUsuarioId_fkey")
   personaFisicaDni    String?
+  personaFisica       PersonaFisica?   @relation(fields: [personaFisicaDni], references: [dni], onDelete: SetNull, onUpdate: Cascade, map: "usuario_personaFisicaDni_fkey")
   personaJuridicaCuit String?
-
-  tipoUsuario         TipoUsuario      @relation(fields: [tipoUsuarioId], references: [id])
-  personaFisica       PersonaFisica?   @relation(fields: [personaFisicaDni], references: [dni])
-  personaJuridica     PersonaJuridica? @relation(fields: [personaJuridicaCuit], references: [cuit])
-
-  complejoEncargado   Complejo?        @relation("EncargadoRelation")
-  complejosDueno      Complejo[]       @relation("DuenoRelation")
-  turnos              Turno[]
+  personaJuridica     PersonaJuridica? @relation(fields: [personaJuridicaCuit], references: [cuit], onDelete: SetNull, onUpdate: Cascade, map: "usuario_personaJuridicaCuit_fkey")
+  turnos              Turno[]          @relation("Cliente")
+  complejosDueno      Complejo[]       @relation("Dueno")
+  complejoEncargado   Complejo?        @relation("Encargado")
 
   @@map("usuario")
 }
 
 model Complejo {
-  id          Int       @id @default(autoincrement())
-  direccion   String
-  nombre      String
-  telefono    String
-  instagram   String?
-  imagenUrl   String?
-  localidadId Int
-  encargadoId Int       @unique // Único para la relación 1 a 1
-  duenoId     Int
-
-  localidad   Localidad @relation(fields: [localidadId], references: [id])
-  encargado   Usuario   @relation("EncargadoRelation", fields: [encargadoId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  dueno       Usuario   @relation("DuenoRelation", fields: [duenoId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-
-  canchas     Cancha[]
-  horarios    Horario[]
-  turnos      Turno[]   // Requerido por la relación inversa desde Turno
+  id           Int        @id @default(autoincrement())
+  direccion    String
+  nombre       String
+  telefono     String
+  instagram    String?
+  imagenUrl    String?
+  localidadId  Int
+  localidad    Localidad  @relation(fields: [localidadId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "complejo_localidadId_fkey")
+  duenoId      Int
+  dueno        Usuario    @relation("Dueno", fields: [duenoId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "complejo_duenoId_fkey")
+  encargadoId  Int        @unique
+  encargado    Usuario    @relation("Encargado", fields: [encargadoId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "complejo_encargadoId_fkey")
+  canchas      Cancha[]
+  horarios     Horario[]
+  turnos       Turno[]    @relation("ComplejoTurnos")
 
   @@map("complejo")
 }
 
 model TipoCancha {
-  id      Int      @id @default(autoincrement())
-  deporte String
+  id       Int      @id @default(autoincrement())
+  deporte  String
   duracion Int
-  
-  canchas Cancha[]
+  canchas  Cancha[]
 
   @@map("tipoCancha")
 }
@@ -111,25 +102,22 @@ model Cancha {
   nro          Int
   complejoId   Int
   tipoCanchaId Int
-  estado String @default("Activo")
-
-  complejo     Complejo   @relation(fields: [complejoId], references: [id], onDelete: Cascade)
-  tipoCancha   TipoCancha @relation(fields: [tipoCanchaId], references: [id])
-
+  estado       String     @default("Activo")
+  complejo     Complejo   @relation(fields: [complejoId], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "cancha_complejoId_fkey")
+  tipoCancha   TipoCancha @relation(fields: [tipoCanchaId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "cancha_tipoCanchaId_fkey")
+  turnos       Turno[]    @relation("CanchaTurnos")
   precios      Precio[]
-  turnos       Turno[]
 
-  @@id([complejoId, nro]) // Clave primaria compuesta
+  @@id([complejoId, nro])
   @@map("cancha")
 }
 
 model Horario {
-  complejoId   Int
-  nroDia       Int
-  horaApertura DateTime @db.Time
-  horaCierre   DateTime @db.Time
-
-  complejo     Complejo @relation(fields: [complejoId], references: [id])
+  complejoId    Int
+  nroDia        Int
+  horaApertura  DateTime @db.Time()
+  horaCierre    DateTime @db.Time()
+  complejo      Complejo @relation(fields: [complejoId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "horario_complejoId_fkey")
 
   @@id([complejoId, nroDia])
   @@map("horario")
@@ -142,8 +130,7 @@ model Precio {
   fechaDesde      DateTime @db.Date
   complejoId      Int
   canchaNro       Int
-
-  cancha          Cancha   @relation(fields: [complejoId, canchaNro], references: [complejoId, nro])
+  cancha          Cancha   @relation(fields: [complejoId, canchaNro], references: [complejoId, nro], onDelete: Restrict, onUpdate: Cascade, map: "precio_complejoId_canchaNro_fkey")
 
   @@id([complejoId, canchaNro, fechaDesde])
   @@map("precio")
@@ -153,28 +140,26 @@ model TipoTurno {
   id          Int     @id @default(autoincrement())
   nombre      String
   descripcion String
-  
   turnos      Turno[]
 
   @@map("tipoTurno")
 }
 
 model Turno {
-  id                Int        @id @default(autoincrement())
-  horaInicio        DateTime   @db.Time
-  horaFin           DateTime   @db.Time
-  estado            String
-  motivoCancelacion String?
-  fecha             DateTime   @db.Date
-  clienteId         Int
-  tipoTurnoId       Int
-  complejoId        Int
-  canchaNro         Int
-
-  cliente           Usuario    @relation(fields: [clienteId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  tipoTurno         TipoTurno  @relation(fields: [tipoTurnoId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  complejo          Complejo   @relation(fields: [complejoId], references: [id])
-  cancha            Cancha     @relation(fields: [complejoId, canchaNro], references: [complejoId, nro], onDelete: NoAction, onUpdate: NoAction)
+  id                 Int       @id @default(autoincrement())
+  horaInicio         DateTime  @db.Time()
+  horaFin            DateTime  @db.Time()
+  estado             String
+  motivoCancelacion  String?
+  fecha              DateTime  @db.Date
+  clienteId          Int
+  cliente            Usuario   @relation("Cliente", fields: [clienteId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "turno_clienteId_fkey")
+  tipoTurnoId        Int
+  tipoTurno          TipoTurno @relation(fields: [tipoTurnoId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "turno_tipoTurnoId_fkey")
+  complejoId         Int
+  complejo           Complejo  @relation("ComplejoTurnos", fields: [complejoId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "turno_complejoId_fkey")
+  canchaNro          Int
+  cancha             Cancha    @relation("CanchaTurnos", fields: [complejoId, canchaNro], references: [complejoId, nro], onDelete: NoAction, onUpdate: NoAction, map: "turno_complejoId_canchaNro_fkey")
 
   @@map("turno")
 }

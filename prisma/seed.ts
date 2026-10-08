@@ -444,6 +444,7 @@ async function main() {
 main()
   .catch((e) => {
     console.error("Error al ejecutar el seed:", e);
+    process.exitCode = 1;
   })
   .finally(async () => {
     await prisma.$disconnect();
