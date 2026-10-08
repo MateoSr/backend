@@ -3,7 +3,6 @@ import {getPersonaFisicaDni,postPersonaFisica} from '../personaFisica/personaFis
 import { ZodError } from 'zod';
 import { type Request, type Response } from "express";
 import {enviarEmailResetPassword, login, loginAdmin, resetPassword} from './auth.service.js' 
-import { getPersonaJuridicaCuit, postPersonaJuridica } from '../personaJuridica/personaJuridica.service.js';
 
 
 async function iniciarSesion(req: Request, res: Response) {
