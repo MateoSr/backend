@@ -1,5 +1,5 @@
 import { Router } from "express";
-import {obtenerTurno,obtenerTurnos,crearTurno,crearTurnoComoEncargado,modificarTurno,borrarTurno,obtenerTurnoPorComplejo} from "./turno.controller.js"
+import {obtenerTurno,obtenerTurnos,crearTurno,crearTurnoComoEncargado,modificarTurno,borrarTurno,obtenerTurnoPorComplejo,cancelarTurno} from "./turno.controller.js"
 import { autenticar } from "../middleware/autenticas.js";
 
 
@@ -13,7 +13,7 @@ turnoRouter.post("/",autenticar,crearTurno)
 turnoRouter.post("/encargado",autenticar,crearTurnoComoEncargado)
 turnoRouter.put("/:id",modificarTurno)
 turnoRouter.delete("/:id",borrarTurno)
-
+turnoRouter.patch('/:id/cancelar', cancelarTurno);
 
 
 export default turnoRouter

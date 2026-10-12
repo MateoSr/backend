@@ -1,4 +1,4 @@
-import {getTurnoId,getAllTurnos,postTurno,postTurnoComoEncargado,putTurno,deleteTurno,getTurnoPorComplejo} from './turno.service.js'
+import {getTurnoId,getAllTurnos,postTurno,postTurnoComoEncargado,putTurno,deleteTurno,getTurnoPorComplejo,cancelarTurnoServicio} from './turno.service.js'
 import {type Request,type Response} from 'express'
 import { ZodError } from 'zod'; //modulo que permimte mostrar los errores de tipos de datos
 async function obtenerTurnos(req:Request,res:Response) {
@@ -115,6 +115,26 @@ async function borrarTurno(req:Request,res:Response) {
         }
 }
 
+async function cancelarTurno(req: Request, res: Response) {
+  try {
+    const {id} = req.params;
+    const turnoId = Number(id);
+
+    if (isNaN(turnoId)) {
+      return res.status(400).json({ error: 'El ID del turno es inválido.' });
+    }
+
+    const turnoActualizado = await cancelarTurnoServicio(turnoId);
+
+    return res.status(200).json({
+      message: 'Turno cancelado con éxito',
+      turno: turnoActualizado,
+    });
+  } catch (error: any) {
+    return res.status(400).json({ error: error.message || 'Error al intentar cancelar el turno.' });
+  }
+}
+
 export {
   obtenerTurno,
   obtenerTurnos,
@@ -122,5 +142,6 @@ export {
     crearTurnoComoEncargado,
   modificarTurno,
   borrarTurno,
-  obtenerTurnoPorComplejo
+  obtenerTurnoPorComplejo,
+  cancelarTurno
 };

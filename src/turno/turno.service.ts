@@ -283,6 +283,23 @@ export async function getEstadisticasHoyDueno(duenoId: number) {
     },
   };
 }
+async function cancelarTurnoServicio(turnoId: number) {
+  // 1. Buscamos el turno en la base de datos
+  const turno = await getTurnoId(turnoId);
+
+  if (!turno) {
+    throw new Error('El turno no fue encontrado.');
+  }
+  if (turno.estado.toLowerCase() !== 'reservado') {
+    throw new Error('Solo se pueden cancelar turnos que se encuentren en estado reservado.');
+  }
+  const turnoActualizado = await prisma.turno.update({
+    where: { id: turnoId },
+    data: { estado: 'Cancelado' },
+  });
+
+  return turnoActualizado;
+}
 
 export {
     getTurnoId,
@@ -291,5 +308,6 @@ export {
     postTurnoComoEncargado,
     getAllTurnos,
     putTurno,
-    deleteTurno
+    deleteTurno,
+    cancelarTurnoServicio
 }
