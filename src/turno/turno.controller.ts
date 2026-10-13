@@ -2,7 +2,6 @@ import {getTurnoId,getAllTurnos,postTurno,postTurnoComoEncargado,putTurno,delete
 import {type Request,type Response} from 'express'
 import { ZodError } from 'zod'; //modulo que permimte mostrar los errores de tipos de datos
 async function obtenerTurnos(req:Request,res:Response) {
-    const {id_cliente} = req.query;
     try{
         const userId = req.usuario?.userId; 
         const turnos = await getAllTurnos({clienteId: userId })
@@ -135,13 +134,15 @@ async function cancelarTurno(req: Request, res: Response) {
   }
 }
 
+
 export {
   obtenerTurno,
   obtenerTurnos,
   crearTurno,
-    crearTurnoComoEncargado,
+  crearTurnoComoEncargado,
   modificarTurno,
   borrarTurno,
   obtenerTurnoPorComplejo,
-  cancelarTurno
+  cancelarTurno,
+  
 };

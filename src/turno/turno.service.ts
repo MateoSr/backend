@@ -1,6 +1,5 @@
 import { turnoSchema, type Turno } from "./turno.schema.js";
 import { prisma } from "../shared/prisma.js";
-import { fa } from "zod/locales";
 import bcrypt from "bcryptjs";
 import { enviarEmailResetPassword } from "../auth/auth.service.js";
 
@@ -300,6 +299,7 @@ async function cancelarTurnoServicio(turnoId: number) {
 
   return turnoActualizado;
 }
+
 
 export {
     getTurnoId,

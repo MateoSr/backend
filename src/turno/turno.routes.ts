@@ -5,7 +5,7 @@ import { autenticar } from "../middleware/autenticas.js";
 
 const turnoRouter = Router()
 turnoRouter.get("/complejo/:id",obtenerTurnoPorComplejo)
-turnoRouter.get("/",obtenerTurnos)
+turnoRouter.get("/",autenticar,obtenerTurnos)
 turnoRouter.get("/:id",obtenerTurno)
 
 
