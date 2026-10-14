@@ -8,6 +8,7 @@ import tipoUsuarioRouter from "./tipoUsuario/tipoUsuario.routes.js";
 import personaJuridicaRouter from "./personaJuridica/personaJuridica.routes.js";
 import personaFisicaRouter from "./personaFisica/personaFisica.routes.js";
 import turnoRouter from "./turno/turno.routes.js";
+import { iniciarSchedulerTurnos } from "./turno/turno.scheduler.js";
 import tipoTurnoRouter from "./tipoTurno/tipoTurno.routes.js";
 import tipoCanchaRouter from "./tipoCancha/tipoCancha.routes.js";
 import loginRouter from "./auth/auth.routes.js";
@@ -53,4 +54,5 @@ app.listen(3000,()=>{
     console.log("Server is running on port 3000");
     console.log("http://localhost:3000");
     // testConexion();
+    iniciarSchedulerTurnos();
 })

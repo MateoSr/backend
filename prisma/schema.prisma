@@ -115,8 +115,8 @@ model Cancha {
 model Horario {
   complejoId    Int
   nroDia        Int
-  horaApertura  DateTime @db.Time()
-  horaCierre    DateTime @db.Time()
+  horaApertura  String   @db.VarChar(5)
+  horaCierre    String   @db.VarChar(5)
   complejo      Complejo @relation(fields: [complejoId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "horario_complejoId_fkey")
 
   @@id([complejoId, nroDia])
@@ -147,8 +147,8 @@ model TipoTurno {
 
 model Turno {
   id                 Int       @id @default(autoincrement())
-  horaInicio         DateTime  @db.Time()
-  horaFin            DateTime  @db.Time()
+  horaInicio         String    @db.VarChar(5)
+  horaFin            String    @db.VarChar(5)
   estado             String
   motivoCancelacion  String?
   fecha              DateTime  @db.Date

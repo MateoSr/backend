@@ -27,20 +27,7 @@ export interface FiltrosTurno {
 // ]
 
 
-function normalizarFechaHora(valor: string | Date): Date {
-  if (valor instanceof Date) return valor;
-  
-  // Si viene en formato "HH:mm" (ej: "18:00")
-  if (/^\d{2}:\d{2}$/.test(valor)) {
-    return new Date(`1970-01-01T${valor}:00.000Z`);
-  }
-  
-  return new Date(valor);
-}
-
-
-async function getTurnoId(id:number): Promise<TurnoSalida | null> {
-    const turno = await prisma.turno.findUnique({
+async function getTurnoId(id:number): Promise<TurnoSalida | null> {    const turno = await prisma.turno.findUnique({
         where:{id}
     })
     return turno || null
@@ -62,8 +49,8 @@ async function postTurno(turno: Turno): Promise<TurnoSalida> {
       complejoId: datosValidados.complejoId,
       canchaNro: datosValidados.canchaNro,
       fecha:datosValidados.fecha,
-      horaInicio: normalizarFechaHora(datosValidados.horaInicio),
-      horaFin: normalizarFechaHora(datosValidados.horaFin),
+      horaInicio: datosValidados.horaInicio,
+      horaFin: datosValidados.horaFin,
       estado: datosValidados.estado,
       motivoCancelacion: datosValidados.motivoCancelacion ?? null,
     },
@@ -117,8 +104,8 @@ async function postTurnoComoEncargado(turno: Turno, cliente: { nombre: string; a
       complejoId: datosValidados.complejoId,
       canchaNro: datosValidados.canchaNro,
       fecha: datosValidados.fecha,
-      horaInicio: normalizarFechaHora(datosValidados.horaInicio),
-      horaFin: normalizarFechaHora(datosValidados.horaFin),
+      horaInicio: datosValidados.horaInicio,
+      horaFin: datosValidados.horaFin,
       estado: datosValidados.estado,
       motivoCancelacion: datosValidados.motivoCancelacion ?? null,
     },
@@ -131,8 +118,8 @@ async function getAllTurnos(filtros: FiltrosTurno = {}): Promise<TurnoSalida[]> 
   const turnos = await prisma.turno.findMany({
     where: clienteId && !isNaN(clienteId) ? { clienteId } : {},
     orderBy: [
-    { fecha: 'desc' },       
-    { horaInicio: 'desc' }   
+    { fecha: 'asc' },       
+    { horaInicio: 'asc' }   
     ],
     select: {
     id: true,
@@ -175,15 +162,16 @@ async function putTurno(id: number, turnoNuevo: Partial<Turno>): Promise<TurnoSa
   // Mapeamos los datos validados a las columnas de la BD
   const updateData: Record<string, any> = {};
 
-  if (datosValidados.clienteId) updateData.id_cliente = datosValidados.clienteId;
-  if (datosValidados.tipoTurnoId) updateData.id_tipoTurno = datosValidados.tipoTurnoId;
-  if (datosValidados.complejoId) updateData.id_complejo = datosValidados.complejoId;
-  if (datosValidados.canchaNro) updateData.nro_cancha = datosValidados.canchaNro;
+  if (datosValidados.clienteId) updateData.clienteId = datosValidados.clienteId;
+  if (datosValidados.tipoTurnoId) updateData.tipoTurnoId = datosValidados.tipoTurnoId;
+  if (datosValidados.complejoId) updateData.complejoId = datosValidados.complejoId;
+  if (datosValidados.canchaNro) updateData.canchaNro = datosValidados.canchaNro;
   if (datosValidados.estado) updateData.estado = datosValidados.estado;
   if (datosValidados.motivoCancelacion !== undefined) updateData.motivoCancelacion = datosValidados.motivoCancelacion;
-  
-  if (datosValidados.horaInicio) updateData.horarioInicio = normalizarFechaHora(datosValidados.horaInicio);
-  if (datosValidados.horaFin) updateData.horarioFin = normalizarFechaHora(datosValidados.horaFin);
+  if (datosValidados.fecha) updateData.fecha = datosValidados.fecha;
+
+  if (datosValidados.horaInicio) updateData.horaInicio = datosValidados.horaInicio;
+  if (datosValidados.horaFin) updateData.horaFin = datosValidados.horaFin;
 
   try {
     const turnoActualizado = await prisma.turno.update({

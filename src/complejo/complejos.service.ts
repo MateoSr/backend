@@ -71,7 +71,7 @@ async function getComplejoDelEncargado(encargadoId: number) {
         include: {
           tipoCancha: true,
           turnos: {
-            where: { estado: { not: "CANCELADO" } },
+            where: { estado: { notIn: ["Cancelado", "Cancelada"] } },
             orderBy: [{ fecha: "asc" }, { horaInicio: "asc" }],
             include: {
               cliente: {
@@ -170,7 +170,7 @@ async function buscarComplejosDisponibles(filtros: BusquedaFiltros): Promise<any
   //convertimos a fechas
   const fechaDate = fecha ? new Date(`${fecha}T00:00:00.000Z`) : new Date();
   const buscaDisponibilidad = Boolean(deporte && fecha && hora);
-  const horaInicioDate = hora ? new Date(`1970-01-01T${hora}:00.000Z`) : null;
+  const horaInicio = hora ?? null;
 
   //inicio de la query
   const complejosDisponibles = await prisma.complejo.findMany({
@@ -198,9 +198,9 @@ async function buscarComplejosDisponibles(filtros: BusquedaFiltros): Promise<any
                 //si no hay un turno para la fecha y hora
                 none: {
                   fecha: fechaDate,
-                  horaInicio: horaInicioDate!,
+                  horaInicio: horaInicio!,
                   estado: {
-                    not: "CANCELADO",
+                    notIn: ["Cancelado", "Cancelada"],
                   },
                 },
               },
@@ -241,7 +241,7 @@ async function buscarComplejosDisponibles(filtros: BusquedaFiltros): Promise<any
             where: {
               fecha: fechaDate,
               estado: {
-                not: "CANCELADO",
+                notIn: ["Cancelado", "Cancelada"],
               },
             },
           },
@@ -262,7 +262,7 @@ async function buscarComplejosDisponibles(filtros: BusquedaFiltros): Promise<any
     const canchasDisponibles = complejo.canchas.filter((cancha) => {
       if (!buscaDisponibilidad) return true;
 
-      const inicio = minutosDesdeHora(horaInicioDate!);
+      const inicio = minutosDesdeHora(horaInicio!);
       const duracion = Number(cancha.tipoCancha?.duracion) || 60;
       const fin = inicio + duracion;
       const tieneHorario = inicio >= apertura && fin <= cierre;

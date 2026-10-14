@@ -1,10 +1,6 @@
 import { prisma } from '../shared/prisma.js'
 import { horarioSchema } from './horario.schema.js'
 
-function parseHoraToDate(horaStr: string): Date {
-    return new Date(`1970-01-01T${horaStr}:00Z`);
-}
-
 async function getHorarios(complejoId: number) {
     return await prisma.horario.findMany({
         where: { complejoId },
@@ -29,8 +25,8 @@ async function postHorario(horarioData: unknown, complejoId: number) {
         data: {
             complejoId: complejoId,
             nroDia: horarioValido.nroDia,
-            horaApertura: parseHoraToDate(horarioValido.horaApertura),
-            horaCierre: parseHoraToDate(horarioValido.horaCierre)
+            horaApertura: horarioValido.horaApertura,
+            horaCierre: horarioValido.horaCierre
         }
     });
 
@@ -42,10 +38,10 @@ async function putHorario(complejoId: number, nroDia: number, horarioData: unkno
     try {
         const dataToUpdate: any = {};
         if (horarioValido.horaApertura) {
-            dataToUpdate.horaApertura = parseHoraToDate(horarioValido.horaApertura);
+            dataToUpdate.horaApertura = horarioValido.horaApertura;
         }
         if (horarioValido.horaCierre) {
-            dataToUpdate.horaCierre = parseHoraToDate(horarioValido.horaCierre);
+            dataToUpdate.horaCierre = horarioValido.horaCierre;
         }
         const horarioActualizado = await prisma.horario.update({
             where: {
