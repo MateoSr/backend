@@ -146,20 +146,19 @@ model TipoTurno {
 }
 
 model Turno {
-  id                 Int       @id @default(autoincrement())
-  horaInicio         String    @db.VarChar(5)
-  horaFin            String    @db.VarChar(5)
-  estado             String
-  motivoCancelacion  String?
-  fecha              DateTime  @db.Date
-  clienteId          Int
-  cliente            Usuario   @relation("Cliente", fields: [clienteId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "turno_clienteId_fkey")
-  tipoTurnoId        Int
-  tipoTurno          TipoTurno @relation(fields: [tipoTurnoId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "turno_tipoTurnoId_fkey")
-  complejoId         Int
-  complejo           Complejo  @relation("ComplejoTurnos", fields: [complejoId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "turno_complejoId_fkey")
-  canchaNro          Int
-  cancha             Cancha    @relation("CanchaTurnos", fields: [complejoId, canchaNro], references: [complejoId, nro], onDelete: NoAction, onUpdate: NoAction, map: "turno_complejoId_canchaNro_fkey")
+  id                Int       @id @default(autoincrement())
+  fechaInicio       DateTime  @db.Timestamptz(6)
+  fechaFin          DateTime  @db.Timestamptz(6)
+  estado            String
+  motivoCancelacion String?
+  clienteId         Int
+  cliente           Usuario   @relation("Cliente", fields: [clienteId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "turno_clienteId_fkey")
+  tipoTurnoId       Int
+  tipoTurno         TipoTurno @relation(fields: [tipoTurnoId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "turno_tipoTurnoId_fkey")
+  complejoId        Int
+  complejo          Complejo  @relation("ComplejoTurnos", fields: [complejoId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "turno_complejoId_fkey")
+  canchaNro         Int
+  cancha            Cancha    @relation("CanchaTurnos", fields: [complejoId, canchaNro], references: [complejoId, nro], onDelete: NoAction, onUpdate: NoAction, map: "turno_complejoId_canchaNro_fkey")
 
   @@map("turno")
 }

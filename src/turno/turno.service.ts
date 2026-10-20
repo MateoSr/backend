@@ -48,9 +48,8 @@ async function postTurno(turno: Turno): Promise<TurnoSalida> {
       tipoTurnoId: datosValidados.tipoTurnoId,
       complejoId: datosValidados.complejoId,
       canchaNro: datosValidados.canchaNro,
-      fecha:datosValidados.fecha,
-      horaInicio: datosValidados.horaInicio,
-      horaFin: datosValidados.horaFin,
+      fechaInicio: datosValidados.fechaInicio,
+      fechaFin: datosValidados.fechaFin,
       estado: datosValidados.estado,
       motivoCancelacion: datosValidados.motivoCancelacion ?? null,
     },
@@ -103,9 +102,8 @@ async function postTurnoComoEncargado(turno: Turno, cliente: { nombre: string; a
       tipoTurnoId: datosValidados.tipoTurnoId,
       complejoId: datosValidados.complejoId,
       canchaNro: datosValidados.canchaNro,
-      fecha: datosValidados.fecha,
-      horaInicio: datosValidados.horaInicio,
-      horaFin: datosValidados.horaFin,
+      fechaInicio: datosValidados.fechaInicio,
+      fechaFin: datosValidados.fechaFin,
       estado: datosValidados.estado,
       motivoCancelacion: datosValidados.motivoCancelacion ?? null,
     },
@@ -117,40 +115,35 @@ async function getAllTurnos(filtros: FiltrosTurno = {}): Promise<TurnoSalida[]> 
 
   const turnos = await prisma.turno.findMany({
     where: clienteId && !isNaN(clienteId) ? { clienteId } : {},
-    orderBy: [
-    { fecha: 'asc' },       
-    { horaInicio: 'asc' }   
-    ],
+    orderBy: [{ fechaInicio: 'asc' }],
     select: {
-    id: true,
-    horaInicio: true, 
-    horaFin: true,    
-    fecha: true,
-    estado: true,
-    clienteId: true,
-    tipoTurnoId: true,
-    complejoId: true,
-    canchaNro: true,
-    
-    complejo: {
-      select: {
-        nombre: true,
-      }
+      id: true,
+      fechaInicio: true,
+      fechaFin: true,
+      estado: true,
+      clienteId: true,
+      tipoTurnoId: true,
+      complejoId: true,
+      canchaNro: true,
+
+      complejo: {
+        select: {
+          nombre: true,
+        },
+      },
+
+      cancha: {
+        select: {
+          nro: true,
+
+          tipoCancha: {
+            select: {
+              deporte: true,
+            },
+          },
+        },
+      },
     },
-
-    cancha: {
-      select: {
-        nro: true,
-        
-        tipoCancha: {
-          select: {
-            deporte: true,
-
-          }
-        }
-      }
-    }
-  },
   });
 
   return turnos;
@@ -168,10 +161,8 @@ async function putTurno(id: number, turnoNuevo: Partial<Turno>): Promise<TurnoSa
   if (datosValidados.canchaNro) updateData.canchaNro = datosValidados.canchaNro;
   if (datosValidados.estado) updateData.estado = datosValidados.estado;
   if (datosValidados.motivoCancelacion !== undefined) updateData.motivoCancelacion = datosValidados.motivoCancelacion;
-  if (datosValidados.fecha) updateData.fecha = datosValidados.fecha;
-
-  if (datosValidados.horaInicio) updateData.horaInicio = datosValidados.horaInicio;
-  if (datosValidados.horaFin) updateData.horaFin = datosValidados.horaFin;
+  if (datosValidados.fechaInicio) updateData.fechaInicio = datosValidados.fechaInicio;
+  if (datosValidados.fechaFin) updateData.fechaFin = datosValidados.fechaFin;
 
   try {
     const turnoActualizado = await prisma.turno.update({
@@ -197,18 +188,27 @@ async function deleteTurno(id:number): Promise<boolean> {
 }
 
 export async function getEstadisticasHoyDueno(duenoId: number) {
-  const hoyInicio = new Date();
-  hoyInicio.setHours(0, 0, 0, 0);
-
-  const hoyFin = new Date();
-  hoyFin.setHours(23, 59, 59, 999);
+  const ahora = new Date();
+  // Convertir "hoy" en Argentina (UTC-3) a rango UTC
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Argentina/Buenos_Aires',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+  const hoyAR = formatter.format(ahora);
+  const [year, month, day] = hoyAR.split('-').map(Number);
+  // Inicio del día en AR = 00:00 AR = 03:00 UTC del mismo día
+  const inicioHoyUTC = new Date(Date.UTC(year, month - 1, day, 3, 0, 0, 0));
+  // Fin del día en AR = 23:59:59.999 AR = 02:59:59.999 UTC del día siguiente
+  const finHoyUTC = new Date(Date.UTC(year, month - 1, day + 1, 2, 59, 59, 999));
 
   // 1. Ejecutamos las consultas en paralelo
   const [turnosHoy, canchasActivas] = await Promise.all([
     // Consultar turnos de hoy con tipoCancha para saber el deporte
     prisma.turno.findMany({
       where: {
-        fecha: { gte: hoyInicio, lte: hoyFin },
+        fechaInicio: { gte: inicioHoyUTC, lte: finHoyUTC },
         estado: { notIn: ['Cancelado', 'Cancelada'] },
         complejo: { duenoId },
         cancha: { estado: { notIn: ['Inactivo', 'Inactiva'] } },

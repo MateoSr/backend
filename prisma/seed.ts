@@ -405,9 +405,8 @@ async function main() {
   await prisma.turno.createMany({
     data: [
       {
-        fecha: new Date("2026-09-20"),
-        horaInicio: "18:00",
-        horaFin: "19:00",
+        fechaInicio: new Date("2026-09-20T18:00:00-03:00"),
+        fechaFin: new Date("2026-09-20T19:00:00-03:00"),
         estado: "Reservado",
         clienteId: cliente1.id,
         tipoTurnoId: 1,
@@ -415,9 +414,8 @@ async function main() {
         canchaNro: 1,
       },
       {
-        fecha: new Date("2026-09-20"),
-        horaInicio: "20:00",
-        horaFin: "21:30",
+        fechaInicio: new Date("2026-09-20T20:00:00-03:00"),
+        fechaFin: new Date("2026-09-20T21:30:00-03:00"),
         estado: "Reservado",
         clienteId: cliente1.id,
         tipoTurnoId: 2,
@@ -425,9 +423,8 @@ async function main() {
         canchaNro: 3,
       },
       {
-        fecha: new Date("2026-09-21"),
-        horaInicio: "19:00",
-        horaFin: "20:00",
+        fechaInicio: new Date("2026-09-21T19:00:00-03:00"),
+        fechaFin: new Date("2026-09-21T20:00:00-03:00"),
         estado: "Cancelado",
         motivoCancelacion: "Lluvia intensa",
         clienteId: cliente1.id,

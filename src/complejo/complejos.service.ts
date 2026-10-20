@@ -28,6 +28,12 @@ function diaDeLaSemana(fecha: Date): number {
   return dia === 0 ? 7 : dia;
 }
 
+// Minutos desde medianoche en horario Argentina (UTC-3) para un instante UTC.
+function minutosArgentina(instante: Date): number {
+  const enArgentina = new Date(instante.getTime() - 3 * 60 * 60 * 1000);
+  return enArgentina.getUTCHours() * 60 + enArgentina.getUTCMinutes();
+}
+
 //funcion de ayuda para los minutos de los horarios
 function obtenerMinutosDesdeMedianoche(hora: Date | string): number {
   if (hora instanceof Date) {
@@ -72,7 +78,7 @@ async function getComplejoDelEncargado(encargadoId: number) {
           tipoCancha: true,
           turnos: {
             where: { estado: { notIn: ["Cancelado", "Cancelada"] } },
-            orderBy: [{ fecha: "asc" }, { horaInicio: "asc" }],
+            orderBy: [{ fechaInicio: "asc" }],
             include: {
               cliente: {
                 select: {
@@ -167,10 +173,20 @@ async function buscarComplejosDisponibles(filtros: BusquedaFiltros): Promise<any
   const { ciudad, deporte, fecha, hora, min = 0, max = Infinity } = filtros;
   const ciudadNormalizada = ciudad?.trim();
 
-  //convertimos a fechas
+  //convertimos a fechas (fecha/hora se interpretan como hora local Argentina UTC-3)
   const fechaDate = fecha ? new Date(`${fecha}T00:00:00.000Z`) : new Date();
   const buscaDisponibilidad = Boolean(deporte && fecha && hora);
-  const horaInicio = hora ?? null;
+  // Rango UTC del día Argentina para filtrar turnos por fechaInicio
+  const inicioDiaUTC = fecha
+    ? new Date(`${fecha}T00:00:00-03:00`)
+    : null;
+  const finDiaUTC = fecha
+    ? new Date(inicioDiaUTC!.getTime() + 24 * 60 * 60 * 1000)
+    : null;
+  // Instante UTC del inicio pedido (fecha + hora en horario Argentina)
+  const inicioPedidoUTC = buscaDisponibilidad
+    ? new Date(`${fecha}T${hora}:00-03:00`)
+    : null;
 
   //inicio de la query
   const complejosDisponibles = await prisma.complejo.findMany({
@@ -195,10 +211,9 @@ async function buscarComplejosDisponibles(filtros: BusquedaFiltros): Promise<any
             tipoCanchaId: Number(deporte),
             ...(buscaDisponibilidad ? {
               turnos: {
-                //si no hay un turno para la fecha y hora
+                //si no hay un turno que empiece en el horario pedido
                 none: {
-                  fecha: fechaDate,
-                  horaInicio: horaInicio!,
+                  fechaInicio: inicioPedidoUTC!,
                   estado: {
                     notIn: ["Cancelado", "Cancelada"],
                   },
@@ -236,10 +251,12 @@ async function buscarComplejosDisponibles(filtros: BusquedaFiltros): Promise<any
             //tomamos 1 solo
             take: 1,
           },
-          // traemos todos los turnos del día para calcular las horas libres
+          // traemos todos los turnos del día (en horario Argentina) para calcular las horas libres
           turnos: {
             where: {
-              fecha: fechaDate,
+              ...(inicioDiaUTC && finDiaUTC
+                ? { fechaInicio: { gte: inicioDiaUTC, lt: finDiaUTC } }
+                : {}),
               estado: {
                 notIn: ["Cancelado", "Cancelada"],
               },
@@ -262,13 +279,13 @@ async function buscarComplejosDisponibles(filtros: BusquedaFiltros): Promise<any
     const canchasDisponibles = complejo.canchas.filter((cancha) => {
       if (!buscaDisponibilidad) return true;
 
-      const inicio = minutosDesdeHora(horaInicio!);
+      const inicio = minutosDesdeHora(hora!);
       const duracion = Number(cancha.tipoCancha?.duracion) || 60;
       const fin = inicio + duracion;
       const tieneHorario = inicio >= apertura && fin <= cierre;
       const tieneTurno = cancha.turnos.some((turno) => {
-        const turnoInicio = minutosDesdeHora(turno.horaInicio);
-        let turnoFin = minutosDesdeHora(turno.horaFin);
+        const turnoInicio = minutosArgentina(turno.fechaInicio);
+        let turnoFin = minutosArgentina(turno.fechaFin);
         if (turnoFin <= turnoInicio) turnoFin += 24 * 60;
         return inicio < turnoFin && fin > turnoInicio;
       });
@@ -286,8 +303,8 @@ async function buscarComplejosDisponibles(filtros: BusquedaFiltros): Promise<any
     for (let inicio = apertura; inicio + duracion <= cierre; inicio += duracion) {
       const fin = inicio + duracion;
       const ocupado = cancha.turnos.some((turno) => {
-        const turnoInicio = minutosDesdeHora(turno.horaInicio);
-        let turnoFin = minutosDesdeHora(turno.horaFin);
+        const turnoInicio = minutosArgentina(turno.fechaInicio);
+        let turnoFin = minutosArgentina(turno.fechaFin);
         if (turnoFin <= turnoInicio) turnoFin += 24 * 60;
         return inicio < turnoFin && fin > turnoInicio;
       });

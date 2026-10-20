@@ -1,5 +1,4 @@
 import express from "express";
-import prisma from "./config/db.js";
 import userRouter from './usuario/users.route.js'
 import complejoRouter from  './complejo/complejos.routes.js'
 import provinciaRouter from './provincia/provincia.routes.js'
@@ -14,23 +13,38 @@ import tipoCanchaRouter from "./tipoCancha/tipoCancha.routes.js";
 import loginRouter from "./auth/auth.routes.js";
 import contactoRouter from "./contacto/contacto.routes.js";
 import menuRouter from "./menues/menu.routes.js"
-import cors from "cors";
+import cors, { type CorsOptions } from 'cors';
 import morgan from "morgan";
 
 
 const app = express();
 
-// async function testConexion() {
-//   try {
-//     await prisma.$queryRaw`SELECT 1`;
-//     console.log("Prisma se conectó a PostgreSQL ");
-//   } catch (error) {
-//     console.error("Error al conectar con la base de datos:");
-//   }
-// }
+const allowedOrigins = [
+  process.env.FRONTEND_URL, // Tu frontend en Vercel/Netlify
+  'http://localhost:5173',  // Tu Vite local (por si testeás local conectándote a prod)
+  'http://localhost:3000',  // Tu backend local
+].filter(Boolean) as string[]; // Remueve valores undefined/null
+
+const corsOptions: CorsOptions = {
+  origin: (origin, callback) => {
+    // Permitir solicitudes sin origen (como llamadas de Postman, tareas server-to-server o Mobile)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS bloqueado para el origen: ${origin}`));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true, // Útil para manejo de sesiones o cookies entre dominios
+  optionsSuccessStatus: 200, // Compatibilidad con navegadores antiguos (legacy smart TVs/IE)
+};
+
 
 app.use(morgan("dev")); //ver las peticiones que llegan al servidor
-app.use(cors()); //todas las rutas con CORS, algo de seguridad
+app.use(cors(corsOptions)); //todas las rutas con CORS, algo de seguridad
 app.use(express.json()); //servidor recibe y envia json
 app.use("/api/users",userRouter)
 app.use("/api/complejos",complejoRouter)
@@ -50,9 +64,8 @@ app.get("/", (req, res) => {
   res.send("Hello, World!");
 })  
 
-app.listen(3000,()=>{
-    console.log("Server is running on port 3000");
-    console.log("http://localhost:3000");
-    // testConexion();
+app.listen(process.env.PORT || 3000,()=>{
+    console.log("Server is running on port " + (process.env.PORT || 3000));
+    console.log("http://localhost:" + (process.env.PORT || 3000));
     iniciarSchedulerTurnos();
 })
