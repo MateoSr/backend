@@ -1,44 +1,8 @@
-import {BrevoClient} from '@getbrevo/brevo'
 import {patchUserPassword,getUserEmail} from '../usuario/users.service.js'
 import bcrypt from "bcryptjs";
-import { emitirTokenReset,emitirToken, verificarTokenReset } from '../shared/jwt.js';
+import { emitirToken, verificarTokenReset } from '../shared/jwt.js';
 
-const brevo = new BrevoClient({
-  apiKey: process.env.BREVO_API_KEY || '',
-});
-
-export async function enviarEmailResetPassword(email: string, userId: number){
-  const resetToken = emitirTokenReset(userId);
-  const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
-
-  // Usamos la API de transactionalEmails directamente
-await brevo.transactionalEmails.sendTransacEmail({
-    subject: "Restablece tu contraseña - Turno Libre",
-    sender: {
-      name: "Turno Libre",
-      email: "soporteturnolibre@gmail.com",
-    },
-    to: [
-      {
-        email: email,
-      },
-    ],
-    htmlContent: `
-      <div style="font-family: Arial, sans-serif; padding: 20px;">
-        <h1>TurnoLibre</h1>
-        <h2>Restablecimiento de contraseña</h2>
-        <p>Has solicitado restablecer tu contraseña. Haz clic en el siguiente enlace para continuar:</p>
-        <a href="${resetUrl}" 
-           style="background-color: #eb6e25; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
-           Restablecer Contraseña
-        </a>
-        <p style="margin-top: 20px; color: #666; font-size: 12px;">
-          Si no solicitaste este cambio, puedes ignorar este correo.
-        </p>
-      </div>
-    `,
-  });
-}
+export { enviarEmailResetPassword } from '../email/email.service.js';
 
 export async function resetPassword(token: string, password: string): Promise<boolean> {
   try {

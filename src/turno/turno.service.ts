@@ -1,7 +1,7 @@
 import { turnoSchema, type Turno } from "./turno.schema.js";
 import { prisma } from "../shared/prisma.js";
 import bcrypt from "bcryptjs";
-import { enviarEmailResetPassword } from "../auth/auth.service.js";
+import { enviarEmailResetPassword, enviarEmailComprobanteReserva } from "../email/email.service.js";
 
 export interface TurnoSalida extends Turno {
     id: number;
@@ -42,6 +42,10 @@ async function getTurnoPorComplejo(complejoId:number): Promise<TurnoSalida[] | n
 }
 async function postTurno(turno: Turno): Promise<TurnoSalida> {
   const datosValidados = turnoSchema.parse(turno);
+  const ahora = new Date();
+  if (datosValidados.fechaInicio < ahora) {
+    throw new Error("No se pueden crear turnos para fechas u horarios pasados.");
+  }
   const nuevoTurno = await prisma.turno.create({
     data: {
       clienteId: datosValidados.clienteId,
@@ -55,11 +59,43 @@ async function postTurno(turno: Turno): Promise<TurnoSalida> {
     },
   });
 
+  try {
+    const turnoCompleto = await prisma.turno.findUnique({
+      where: { id: nuevoTurno.id },
+      include: {
+        cliente: {
+          include: {
+            personaFisica: true,
+            personaJuridica: true,
+          },
+        },
+        complejo: true,
+        cancha: {
+          include: {
+            tipoCancha: true,
+          },
+        },
+      },
+    });
+
+    if (turnoCompleto) {
+      void enviarEmailComprobanteReserva(turnoCompleto).catch((err) => {
+        console.error("Error enviando comprobante de reserva:", err);
+      });
+    }
+  } catch (err) {
+    console.error("Error al obtener datos para enviar comprobante:", err);
+  }
+
   return nuevoTurno;
 }
 
 async function postTurnoComoEncargado(turno: Turno, cliente: { nombre: string; apellido: string; telefono: string; email: string }): Promise<TurnoSalida> {
   const datosValidados = turnoSchema.omit({ clienteId: true }).parse(turno);
+  const ahora = new Date();
+  if (datosValidados.fechaInicio < ahora) {
+    throw new Error("No se pueden crear turnos para fechas u horarios pasados.");
+  }
   const clienteExistente = await prisma.usuario.findUnique({ where: { email: cliente.email } });
   let clienteId = clienteExistente?.id;
   let cuentaCreada = false;
@@ -161,7 +197,13 @@ async function putTurno(id: number, turnoNuevo: Partial<Turno>): Promise<TurnoSa
   if (datosValidados.canchaNro) updateData.canchaNro = datosValidados.canchaNro;
   if (datosValidados.estado) updateData.estado = datosValidados.estado;
   if (datosValidados.motivoCancelacion !== undefined) updateData.motivoCancelacion = datosValidados.motivoCancelacion;
-  if (datosValidados.fechaInicio) updateData.fechaInicio = datosValidados.fechaInicio;
+  if (datosValidados.fechaInicio) {
+    const ahora = new Date();
+    if (datosValidados.fechaInicio < ahora) {
+      throw new Error("No se puede modificar el turno a una fecha u horario pasado.");
+    }
+    updateData.fechaInicio = datosValidados.fechaInicio;
+  }
   if (datosValidados.fechaFin) updateData.fechaFin = datosValidados.fechaFin;
 
   try {
