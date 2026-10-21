@@ -29,7 +29,7 @@ async function obtenerUser(req:Request,res:Response) {
         const {id} = req.params
         const user = await getUserId(Number(id))
         if(!user){
-            return res.status(404).json({message:"No se encontro el usuario"})
+            return res.status(404).json({message:"No se encontró el usuario"})
         }
         return res.status(200).json(user)
         }catch(error:any)
@@ -48,11 +48,11 @@ async function obtenerUserCompleto(req:Request,res:Response) {
 
         const user = await getUserId(Number(userId))
         if(!user){
-            return res.status(404).json({message:"No se encontro el usuario"})
+            return res.status(404).json({message:"No se encontró el usuario"})
         }
         const personaFisica = await getPersonaFisicaDni(user.personaFisicaDni!)
         if(!personaFisica){
-            return res.status(404).json({message:"No se encontro la persona"})
+            return res.status(404).json({message:"No se encontró la persona"})
         }
 
         const respuesta = {
@@ -79,7 +79,7 @@ async function crearUser(req:Request,res:Response) {
         if(!resultado){
 
             return res.status(401).json({
-                error: 'Erorr'
+                error: 'Error'
             })
         }
         return res.status(201).json({
@@ -111,7 +111,7 @@ async function modificarUser(req:Request,res:Response) {
         const userModificado = req.body
         const resultado = await putUser(Number(userId),userModificado)
         if(!resultado){
-            return res.status(404).json({message:"No se encontro el usuario"})
+            return res.status(404).json({message:"No se encontró el usuario"})
         }
         return res.status(200).json({
             message: 'Usuario modificado correctamente',
@@ -128,7 +128,7 @@ async function borrarUser(req:Request,res:Response) {
         const {id} = req.params
         const response = await deleteUser(Number(id))
         if(!response){
-            return res.status(404).json({message:"No se encontro el usuario"})
+            return res.status(404).json({message:"No se encontró el usuario"})
         }
         return res.status(200).json({
             message: 'Usuario eliminado correctamente',

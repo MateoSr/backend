@@ -20,7 +20,7 @@ async function obtenerPrecio(req: Request, res: Response) {
         const {id_complejo,nro_cancha,fechaDesde} = req.params
         const precio = await getPrecio(Number(id_complejo),Number(nro_cancha),String(fechaDesde))
         if(!precio){
-            return res.status(404).json({message:"No se encontro el precio"})
+            return res.status(404).json({message:"No se encontró el precio"})
         }
         return res.status(200).json(precio)
         }catch(error:any)

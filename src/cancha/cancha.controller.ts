@@ -23,7 +23,7 @@ async function obtenerCancha(req: Request, res: Response) {
         const {id_complejo} = req.params
         const cancha = await getCanchaNro(Number(nro), Number(id_complejo))
         if(!cancha){
-            return res.status(404).json({message:"No se encontro la cancha"})
+            return res.status(404).json({message:"No se encontró la cancha"})
         }
         return res.status(200).json(cancha)
         }catch(error:any)
@@ -60,7 +60,7 @@ async function modificarCancha(req: Request, res: Response) {
         const canchaModificada = req.body
         const resultado = await putCancha(Number(nro), Number(id_complejo), canchaModificada)
         if(!resultado){
-            return res.status(404).json({message:"No se encontro la cancha"})
+            return res.status(404).json({message:"No se encontró la cancha"})
         }
         return res.status(200).json({
             message: 'Cancha modificada correctamente',
@@ -79,10 +79,10 @@ async function borrarCancha(req: Request, res: Response) {
         console.log(id_complejo,nro)
         const response = await deleteCancha(Number(nro), Number(id_complejo))
         if(!response){
-            return res.status(404).json({message:"No se encontro la cancha"})
+            return res.status(404).json({message:"No se encontró la cancha"})
         }
         return res.status(200).json({
-            message: 'Cancha eliminado correctamente',
+            message: 'Cancha eliminada correctamente',
         })
         }catch(error:any)
         {

@@ -2,10 +2,10 @@ import { z } from 'zod';
 
 export const turnoSchema = z
   .object({
-    clienteId: z.number().int("El id debe ser un numero entero"),
-    tipoTurnoId: z.number().int("El id debe ser un numero entero"),
-    complejoId: z.number().int("El id debe ser un numero entero"),
-    canchaNro: z.number().int("El id debe ser un numero entero"),
+    clienteId: z.number().int("El id debe ser un número entero"),
+    tipoTurnoId: z.number().int("El id debe ser un número entero"),
+    complejoId: z.number().int("El id debe ser un número entero"),
+    canchaNro: z.number().int("El id debe ser un número entero"),
     fechaInicio: z.coerce.date(),
     fechaFin: z.coerce.date(),
     estado: z.string().min(1, "El estado es un campo obligatorio"),

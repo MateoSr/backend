@@ -18,7 +18,7 @@ async function obtenerLocalidad(req: Request, res: Response){
         const {id} = req.params
         const localidad = await getLocalidad(Number(id))
         if(!localidad){
-            return res.status(404).json({message: "No se encontro la localidad"})
+            return res.status(404).json({message: "No se encontró la localidad"})
         }
         return res.status(200).json(localidad)
     } catch (error:any) {

@@ -66,7 +66,7 @@ async function registrar(req: Request, res: Response) {
         }
         const response = await postUser(user)
       
-        return res.status(201).json({message:"Usuario registrado con exito"})
+        return res.status(201).json({message:"Usuario registrado con éxito"})
     }catch(error:any){
         if (error instanceof ZodError) {
         return res.status(400).json({

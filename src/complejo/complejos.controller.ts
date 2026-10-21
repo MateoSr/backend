@@ -21,7 +21,7 @@ async function obtenerComplejo(req: Request, res: Response) {
         const {id} = req.params
         const complejo = await getComplejoId(Number(id))
         if(!complejo){
-            return res.status(404).json({message:"No se encontro el complejo"})
+            return res.status(404).json({message:"No se encontró el complejo"})
         }
         return res.status(200).json(complejo)
         }catch(error:any)
@@ -96,7 +96,7 @@ async function modificarComplejo(req: Request, res: Response) {
         const complejoModificado = req.body
         const resultado = await putComplejo(Number(id),complejoModificado)
         if(!resultado){
-            return res.status(404).json({message:"No se encontro el complejo"})
+            return res.status(404).json({message:"No se encontró el complejo"})
         }
         return res.status(200).json({
             message: 'Complejo modificado correctamente',
@@ -113,7 +113,7 @@ async function borrarComplejo(req: Request, res: Response) {
         const {id} = req.params
         const response = await deleteComplejo(Number(id))
         if(!response){
-            return res.status(404).json({message:"No se encontro el complejo"})
+            return res.status(404).json({message:"No se encontró el complejo"})
         }
         return res.status(200).json({
             message: 'Complejo eliminado correctamente',
@@ -134,7 +134,7 @@ async function obtenerComplejosDisponibles(req: Request, res: Response) {
 
         if ((min !== undefined && !Number.isFinite(min))
                 || (max !== undefined && !Number.isFinite(max))) {
-                return res.status(400).json({ message: "Los filtros de precio deben ser numericos." });
+                return res.status(400).json({ message: "Los filtros de precio deben ser numéricos." });
         }
 
         const resultados = await buscarComplejosDisponibles({ ciudad, deporte, fecha, hora, min, max });

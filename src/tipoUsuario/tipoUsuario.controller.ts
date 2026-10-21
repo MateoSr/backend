@@ -18,7 +18,7 @@ async function obtenerTipoUsuario(req: Request, res: Response) {
         const {id} = req.params
         const tipoUsuario = await getTipoUsuario(Number(id))
         if(!tipoUsuario){
-            return res.status(404).json({message: "No se encontro el tipo de usuario"})
+            return res.status(404).json({message: "No se encontró el tipo de usuario"})
         }
         return res.status(200).json(tipoUsuario)
     } catch (error:any) {

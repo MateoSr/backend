@@ -20,7 +20,7 @@ async function obtenerTurno(req:Request,res:Response) {
         const {id} = req.params
         const turno = await getTurnoId(Number(id))
         if(!turno){
-            return res.status(404).json({message:"No se encontro el turno"})
+            return res.status(404).json({message:"No se encontró el turno"})
         }
         return res.status(200).json(turno)
         }catch(error:any)
@@ -34,7 +34,7 @@ async function obtenerTurnoPorComplejo(req:Request,res:Response) {
         const {id} = req.params
         const turno = await getTurnoPorComplejo(Number(id))
         if(!turno){
-            return res.status(404).json({message:"No se encontro turnos para ese complejo"})
+            return res.status(404).json({message:"No se encontraron turnos para ese complejo"})
         }
         return res.status(200).json(turno)
         }catch(error:any)
@@ -86,7 +86,7 @@ async function modificarTurno(req:Request,res:Response) {
         const turnoModificado = req.body
         const resultado = await putTurno(Number(id),turnoModificado)
         if(!resultado){
-            return res.status(404).json({message:"No se encontro el turno"})
+            return res.status(404).json({message:"No se encontró el turno"})
         }
         return res.status(200).json({
             message: 'Turno modificado correctamente',
@@ -103,7 +103,7 @@ async function borrarTurno(req:Request,res:Response) {
         const {id} = req.params
         const response = await deleteTurno(Number(id))
         if(!response){
-            return res.status(404).json({message:"No se encontro el turno"})
+            return res.status(404).json({message:"No se encontró el turno"})
         }
         return res.status(200).json({
             message: 'Turno eliminado correctamente',

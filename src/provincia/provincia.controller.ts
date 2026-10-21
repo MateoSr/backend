@@ -19,7 +19,7 @@ async function obtenerProvincia(req: Request, res: Response){
         const {id} = req.params
         const provincia = await getProvincia(Number(id))
         if(!provincia){
-            return res.status(404).json({message: "No se encontro la provincia"})
+            return res.status(404).json({message: "No se encontró la provincia"})
         }
         return res.status(200).json(provincia)
     } catch (error:any) {
@@ -31,7 +31,7 @@ async function obtenerLocalidadPorProvincia(req: Request, res: Response) {
         const {id} = req.params
         const localidades = await getLocalidadPorProvincia(Number(id))
         if(!localidades){
-            return res.status(404).json({message: "No se encontro localidades para esa provincia"})
+            return res.status(404).json({message: "No se encontraron localidades para esa provincia"})
         }
         return res.status(200).json(localidades)
     } catch (error:any) {

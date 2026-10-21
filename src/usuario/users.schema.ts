@@ -4,17 +4,17 @@ import { z } from 'zod';
 //no agregue el id porque seria autogeneral
 export const userSchema = z.object({
   email: z.string().min(1, "El email es un campo obligatorio").email("El formato del email no es válido"),
-  telefono: z.string().min(1, "El telefono es un campo obligatorio"),
+  telefono: z.string().min(1, "El teléfono es un campo obligatorio"),
   password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres"),
-  tipoUsuarioId: z.number().int("El id debe ser un numero entero").positive("El id debe ser un número positivo"),
-  personaFisicaDni: z.string().min(7, "El dni debe tener como minimo 7 caracteres").nullable().optional(),
-  personaJuridicaCuit: z.string().min(11, "El cuit debe tener como minimo 11 caracteres").nullable().optional()
+  tipoUsuarioId: z.number().int("El id debe ser un número entero").positive("El id debe ser un número positivo"),
+  personaFisicaDni: z.string().min(7, "El DNI debe tener como mínimo 7 caracteres").nullable().optional(),
+  personaJuridicaCuit: z.string().min(11, "El CUIT debe tener como mínimo 11 caracteres").nullable().optional()
 }).strict();;
 
 export const userUpdateSchema = z.object({
-  id: z.number().int("El id debe ser un numero entero").positive("El id debe ser un número positivo"),
+  id: z.number().int("El id debe ser un número entero").positive("El id debe ser un número positivo"),
   email: z.string().min(1, "El email es un campo obligatorio").email("El formato del email no es válido"),
-  telefono: z.string().min(1, "El telefono es un campo obligatorio"),
+  telefono: z.string().min(1, "El teléfono es un campo obligatorio"),
   // password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres").optional(),
   // Campos correspondientes a PersonaFisica
   nombre: z.string().min(1, "El nombre es obligatorio").optional(),

@@ -9,7 +9,7 @@ async function obtenerHorarios(req: Request, res: Response) {
         const horarios = await getHorarios(Number(id_complejo))
         
         if(!horarios){
-            return res.status(404).json({message: "NO hay horarios cargados para ese complejo"})
+            return res.status(404).json({message: "No hay horarios cargados para ese complejo"})
         }
         return res.status(200).json(horarios)
     }catch(error:any) {
@@ -23,7 +23,7 @@ async function obtenerHorario(req: Request, res: Response) {
         const {id_complejo,num_dia} = req.params
         const horario = await getHorario(Number(id_complejo), Number(num_dia))
         if(!horario){
-            return res.status(404).json({message: "NO hay horarios cargados para ese dia"})
+            return res.status(404).json({message: "No hay horarios cargados para ese día"})
         }
         return res.status(200).json(horario)  
     } catch(error:any) {
@@ -56,7 +56,7 @@ async function modificarHorario(req: Request, res: Response) {
         const horarioNuevo = req.body
         const resultado = await putHorario(Number(id_complejo), Number(num_dia), horarioNuevo)
         if(!resultado){
-            return res.status(404).json({message:"No se encontro el horario"})
+            return res.status(404).json({message:"No se encontró el horario"})
         }
         return res.status(200).json({
             message: 'Horario modificado correctamente',
@@ -76,7 +76,7 @@ async function borrarHorario(req: Request, res: Response) {
         const {id_complejo,num_dia} = req.params
         const resultado = await deleteHorario(Number(id_complejo), Number(num_dia))
         if(!resultado){
-            return res.status(404).json({message:"No se encontro el horario"})
+            return res.status(404).json({message:"No se encontró el horario"})
         }
         return res.status(200).json({message:"Horario borrado correctamente"})
     }catch(error:any) {

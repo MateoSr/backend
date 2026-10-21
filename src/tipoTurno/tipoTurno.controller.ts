@@ -18,7 +18,7 @@ async function obtenerTipoTurno(req: Request, res: Response) {
         const {id} = req.params
         const tipoTurno = await getTipoTurnoId(Number(id))
         if(!tipoTurno){
-            return res.status(404).json({message:"No se encontro el tipo de turno"})
+            return res.status(404).json({message:"No se encontró el tipo de turno"})
         }
         return res.status(200).json(tipoTurno)
     } catch(error:any) {
