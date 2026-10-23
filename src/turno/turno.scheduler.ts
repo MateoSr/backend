@@ -8,6 +8,33 @@ const ESTADOS_FINALES_UPPER = ESTADOS_FINALES.map((e) => e.toUpperCase());
 // Set en minúsculas para comparar de forma insensible a mayúsculas en JS.
 const ESTADOS_FINALES_SET = new Set(ESTADOS_FINALES.map((e) => e.toLowerCase()));
 
+export async function liberarTurnosPendientesExpirados(): Promise<void> {
+  const hace10Min = new Date(Date.now() - 10 * 60 * 1000);
+
+  const vencidos = await prisma.ordenPago.findMany({
+    where: {
+      estado: "pendiente",
+      createdAt: { lt: hace10Min },
+      turnoId: { not: null },
+    },
+    include: { turno: true },
+  });
+
+  for (const orden of vencidos) {
+    try {
+      if (orden.turnoId) {
+        await prisma.turno.delete({ where: { id: orden.turnoId } }).catch(() => {});
+      }
+      await prisma.ordenPago.update({
+        where: { id: orden.id },
+        data: { estado: "expirada", motivoRechazo: "Expirado por falta de pago (10 minutos)" },
+      });
+    } catch (e) {
+      console.error("Error liberando turno pendiente vencido:", e);
+    }
+  }
+}
+
 /**
  * Actualiza automáticamente el estado de los turnos según la hora actual:
  * - Si ya terminó (ahora >= fin) pasa a "Finalizado".

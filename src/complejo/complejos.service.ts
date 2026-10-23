@@ -53,7 +53,11 @@ async function getComplejoId(id: number): Promise<ComplejoSalida | null> {
       canchas: {
         include: {
           tipoCancha: true,
-          turnos: true,
+          turnos: {
+            where: {
+              estado: { notIn: ["Cancelado", "Cancelada"] },
+            },
+          },
           precios: {
             orderBy: {
               fechaDesde: 'desc', // Ordena del más reciente al más antiguo
