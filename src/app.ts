@@ -12,6 +12,7 @@ import tipoCanchaRouter from "./tipoCancha/tipoCancha.routes.js";
 import loginRouter from "./auth/auth.routes.js";
 import contactoRouter from "./contacto/contacto.routes.js";
 import menuRouter from "./menues/menu.routes.js"
+import pagoRouter from "./pago/pago.routes.js"
 import cors, { type CorsOptions } from 'cors';
 import morgan from "morgan";
 
@@ -19,9 +20,10 @@ import morgan from "morgan";
 const app = express();
 
 const allowedOrigins = [
-  process.env.FRONTEND_URL, // Tu frontend en Vercel/Netlify
-  'http://localhost:5173',  // Tu Vite local (por si testeás local conectándote a prod)
-  'http://localhost:3000',  // Tu backend local
+  process.env.FRONTEND_URL,
+  process.env.FRONTEND_PUBLIC_URL,
+  'http://localhost:5173',
+  'http://localhost:3000',
 ].filter(Boolean) as string[]; // Remueve valores undefined/null
 
 const corsOptions: CorsOptions = {
@@ -61,6 +63,7 @@ app.use("/api/tipoTurno",tipoTurnoRouter)
 app.use("/api/tipoCancha",tipoCanchaRouter)
 app.use("/api/contacto",contactoRouter)
 app.use("/api/menues",menuRouter)
+app.use("/api/pagos",pagoRouter)
 
 app.get("/", (req, res) => {
   res.send("Hello, World!");

@@ -8,7 +8,8 @@ async function getCanchaNro(nro: number, id_complejo: number) {
                 id: id_complejo
             },
             nro: nro 
-        }
+        },
+        include: {precios: {orderBy: {fechaDesde: 'desc'}, take: 1}}
     })
 }
 

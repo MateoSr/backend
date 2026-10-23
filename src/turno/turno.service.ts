@@ -1,7 +1,6 @@
 import { turnoSchema, type Turno } from "./turno.schema.js";
 import { prisma } from "../shared/prisma.js";
-import bcrypt from "bcryptjs";
-import { enviarEmailResetPassword, enviarEmailComprobanteReserva } from "../email/email.service.js";
+import { enviarEmailComprobanteReserva } from "../email/email.service.js";
 
 export interface TurnoSalida extends Turno {
     id: number;
@@ -72,6 +71,8 @@ async function postTurno(turno: Turno): Promise<TurnoSalida> {
       fechaFin: datosValidados.fechaFin,
       estado: datosValidados.estado,
       motivoCancelacion: datosValidados.motivoCancelacion ?? null,
+      nombreSolicitante: datosValidados.nombreSolicitante ?? null,
+      apellidoSolicitante: datosValidados.apellidoSolicitante ?? null,
     },
   });
 
@@ -105,51 +106,18 @@ async function postTurno(turno: Turno): Promise<TurnoSalida> {
   return nuevoTurno;
 }
 
-async function postTurnoComoEncargado(turno: Turno, cliente: { nombre: string; apellido: string; telefono: string; email: string }): Promise<TurnoSalida> {
-  const datosValidados = turnoSchema.omit({ clienteId: true }).parse(turno);
+// El encargado agenda un turno para un solicitante que puede no tener cuenta.
+// No se crea (ni actualiza) ningún Usuario: el turno queda guardado con
+// clienteId en null y los datos del solicitante en nombreSolicitante/apellidoSolicitante.
+async function postTurnoComoEncargado(turno: Turno, cliente: { nombre: string; apellido: string; telefono?: string; email?: string }): Promise<TurnoSalida> {
+  const datosValidados = turnoSchema.parse(turno);
   const ahora = new Date();
   if (datosValidados.fechaInicio < ahora) {
     throw new Error("No se pueden crear turnos para fechas u horarios pasados.");
   }
-  const clienteExistente = await prisma.usuario.findUnique({ where: { email: cliente.email } });
-  let clienteId = clienteExistente?.id;
-  let cuentaCreada = false;
-
-  if (!clienteId) {
-    const dni = `TEMP${Date.now()}${Math.floor(Math.random() * 1000)}`;
-    const persona = await prisma.personaFisica.create({
-      data: {
-        dni,
-        nombre: cliente.nombre,
-        apellido: cliente.apellido,
-        fechaNacimiento: new Date("1900-01-01"),
-      },
-    });
-    const password = await bcrypt.hash(`${dni}-${cliente.email}`, 10);
-    const nuevoCliente = await prisma.usuario.create({
-      data: {
-        email: cliente.email,
-        telefono: cliente.telefono,
-        password,
-        tipoUsuarioId: 3,
-        personaFisicaDni: persona.dni,
-      },
-    });
-    clienteId = nuevoCliente.id;
-    cuentaCreada = true;
-  }
-
-  if (cuentaCreada) {
-    try {
-      await enviarEmailResetPassword(cliente.email, clienteId);
-    } catch (error) {
-      console.error("No se pudo enviar el enlace para definir la contraseña:", error);
-    }
-  }
-
-  return prisma.turno.create({
+  const nuevoTurno = await prisma.turno.create({
     data: {
-      clienteId,
+      clienteId: undefined,
       tipoTurnoId: datosValidados.tipoTurnoId,
       complejoId: datosValidados.complejoId,
       canchaNro: datosValidados.canchaNro,
@@ -157,8 +125,12 @@ async function postTurnoComoEncargado(turno: Turno, cliente: { nombre: string; a
       fechaFin: datosValidados.fechaFin,
       estado: datosValidados.estado,
       motivoCancelacion: datosValidados.motivoCancelacion ?? null,
+      nombreSolicitante: cliente.nombre,
+      apellidoSolicitante: cliente.apellido,
     },
   });
+
+  return nuevoTurno;
 }
 
 async function getAllTurnos(filtros: FiltrosTurno = {}): Promise<TurnoSalida[]> {
@@ -176,6 +148,8 @@ async function getAllTurnos(filtros: FiltrosTurno = {}): Promise<TurnoSalida[]> 
       tipoTurnoId: true,
       complejoId: true,
       canchaNro: true,
+      nombreSolicitante: true,
+      apellidoSolicitante: true,
 
       complejo: {
         select: {
