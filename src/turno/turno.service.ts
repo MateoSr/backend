@@ -40,11 +40,27 @@ async function getTurnoPorComplejo(complejoId:number): Promise<TurnoSalida[] | n
   return turnos 
   
 }
+async function verificarTurnoExistente(complejoId: number, canchaNro: number, fechaInicio: Date, fechaFin: Date): Promise<boolean> {
+  const turnoExistente = await prisma.turno.findFirst({
+    where: {
+      complejoId,
+      canchaNro,
+      fechaInicio,
+      fechaFin
+    }
+  });
+  return !!turnoExistente;
+}
+
 async function postTurno(turno: Turno): Promise<TurnoSalida> {
   const datosValidados = turnoSchema.parse(turno);
   const ahora = new Date();
   if (datosValidados.fechaInicio < ahora) {
     throw new Error("No se pueden crear turnos para fechas u horarios pasados.");
+  }
+  const turnoExistente = await verificarTurnoExistente(datosValidados.complejoId, datosValidados.canchaNro, datosValidados.fechaInicio, datosValidados.fechaFin);
+  if (turnoExistente) {
+    throw new Error("Ya existe un turno en la misma cancha y horario.");
   }
   const nuevoTurno = await prisma.turno.create({
     data: {
@@ -86,7 +102,6 @@ async function postTurno(turno: Turno): Promise<TurnoSalida> {
   } catch (err) {
     console.error("Error al obtener datos para enviar comprobante:", err);
   }
-
   return nuevoTurno;
 }
 

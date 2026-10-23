@@ -1,5 +1,3 @@
-// Configuración común para los tests del backend.
-// Se ejecuta antes de cada archivo de test (ver vitest.config.ts -> setupFiles).
 import { vi } from 'vitest';
 
 // Variables de entorno de prueba: no usamos los secretos reales del .env
