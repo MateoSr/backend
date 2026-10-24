@@ -49,7 +49,7 @@ if (process.env.NODE_ENV !== 'test') {
   app.use(morgan("dev")); //ver las peticiones que llegan al servidor
 }
 app.use(cors(corsOptions)); //todas las rutas con CORS, algo de seguridad
-app.use(express.json()); //servidor recibe y envia json
+app.use(express.json({ limit: '2mb' })); //servidor recibe y envia json
 app.use("/api/users",userRouter)
 app.use("/api/complejos",complejoRouter)
 app.use("/api/provincias",provinciaRouter)
