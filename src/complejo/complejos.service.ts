@@ -1,6 +1,6 @@
 import { complejoSchema,type Complejo } from "./complejos.schema.js";
 import { prisma } from "../shared/prisma.js";
-import { turnoSchema } from "../turno/turno.schema.js";
+
 
 export interface ComplejoSalida extends Complejo {
     id: number;
