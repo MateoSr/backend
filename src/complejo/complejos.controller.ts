@@ -1,4 +1,4 @@
-import {getComplejoId,getComplejoDelEncargado,getAllComplejos,postComplejo,putComplejo,deleteComplejo,buscarComplejosDisponibles, getComplejoDelDueno} from './complejos.service.js'
+import {getComplejoId,getComplejoDelEncargado,getAllComplejos,postComplejo,putComplejo,deleteComplejo,bajaComplejo,buscarComplejosDisponibles, getComplejoDelDueno} from './complejos.service.js'
 import { ZodError } from 'zod';
 import e, {type Request, type Response} from 'express'
 import cloudinary from '../config/cloudinary.js'
@@ -144,6 +144,23 @@ async function modificarComplejo(req: Request, res: Response) {
         }
 }
 
+async function darDeBajaComplejo(req: Request, res: Response) {
+    try{
+        const {id} = req.params
+        const complejo = await bajaComplejo(Number(id))
+        if(!complejo){
+            return res.status(404).json({message:"No se encontró el complejo"})
+        }
+        return res.status(200).json({
+            message: 'Complejo dado de baja correctamente',
+            complejo
+        })
+        }catch(error:any)
+        {
+        return res.status(400).json({error:error.message})
+        }
+}
+
 async function borrarComplejo(req: Request, res: Response) {
     try{
         const {id} = req.params
@@ -192,5 +209,6 @@ export {
     crearComplejo,
     modificarComplejo,
     borrarComplejo,
+    darDeBajaComplejo,
     obtenerComplejosDisponibles
 };

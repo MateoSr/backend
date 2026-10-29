@@ -4,6 +4,7 @@ import { prisma } from "../shared/prisma.js";
 
 export interface ComplejoSalida extends Complejo {
     id: number;
+    estado: string;
 }
 interface BusquedaFiltros {
   ciudad?: string;
@@ -133,7 +134,10 @@ async function postComplejo(complejo: Complejo): Promise<ComplejoSalida> {
   const datosValidados = complejoSchema.parse(complejo);
 
   const nuevoComplejo = await prisma.complejo.create({
-    data: datosValidados
+    data: {
+      ...datosValidados,
+      estado: "Activo"
+    }
   });
 
   return nuevoComplejo;
@@ -156,6 +160,18 @@ async function putComplejo(id: number, complejoNuevo: Partial<Complejo>): Promis
     return complejoActualizado;
   } catch (error) {
     // Si el ID no existe, Prisma lanza un error (P2025) y retornamos null para mantener tu firma original
+    return null;
+  }
+}
+
+async function bajaComplejo(id: number): Promise<ComplejoSalida | null> {
+  try {
+    const complejo = await prisma.complejo.update({
+      where: { id },
+      data: { estado: "Inactivo" }
+    });
+    return complejo;
+  } catch (error) {
     return null;
   }
 }
@@ -195,6 +211,7 @@ async function buscarComplejosDisponibles(filtros: BusquedaFiltros): Promise<any
   //inicio de la query
   const complejosDisponibles = await prisma.complejo.findMany({
     where: {
+      estado: { not: "Inactivo" },
       //buscamos la localidad correspondiente
       ...(ciudadNormalizada ? {
         localidad: {
@@ -362,7 +379,7 @@ async function getTurnosPosiblesPorDia(complejoId: number, fecha: Date): Promise
   const horarioDelDia = complejo?.horarios[0];
 
   // si no hay complejo/canchas/horarios
-  if (!complejo || complejo.canchas.length === 0 || !horarioDelDia) {
+  if (!complejo || complejo.estado === "Inactivo" || complejo.canchas.length === 0 || !horarioDelDia) {
     return 0;
   }
   // duracion turno
@@ -386,7 +403,7 @@ async function getTurnosPosiblesPorDia(complejoId: number, fecha: Date): Promise
 async function getCapacidadTotalDuenoPorDia(duenoId: number,fecha: Date = new Date()): Promise<number> {
   // todos complejos del dueno
   const complejos = await prisma.complejo.findMany({
-    where: { duenoId: duenoId },
+    where: { duenoId: duenoId, estado: { not: "Inactivo" } },
     select: { id: true },
   });
   // no hay complejo da error
@@ -413,6 +430,7 @@ export {
     postComplejo,
     getAllComplejos,
     putComplejo,
+    bajaComplejo,
     deleteComplejo,
     buscarComplejosDisponibles,
     getCapacidadTotalDuenoPorDia

@@ -78,7 +78,7 @@ async function getCantidadCanchasTotalesDueno(duenoId: number): Promise<number> 
   return await prisma.cancha.count({
     where: {
       estado: { notIn: ['Inactivo', 'Inactiva'] },
-      complejo: { duenoId: duenoId },
+      complejo: { duenoId: duenoId, estado: { not: 'Inactivo' } },
     },
   });
 }

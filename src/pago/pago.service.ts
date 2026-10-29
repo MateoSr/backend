@@ -99,6 +99,12 @@ export async function crearOrdenPago(payload: any, clienteId: number) {
 
   if (!complejoId || !canchaNro || !fecha || !horaInicio) throw new Error("Faltan datos para crear la orden");
 
+  const complejo = await prisma.complejo.findUnique({
+    where: { id: Number(complejoId) },
+    select: { estado: true },
+  });
+  if (!complejo || complejo.estado === "Inactivo") throw new Error("El complejo no está disponible");
+
 const duracionMin = Number(duracion || 60);
   
   // Concatenamos la fecha cruda, la hora y le clavamos el offset de Argentina (-03:00)
