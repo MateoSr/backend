@@ -66,7 +66,7 @@ model Usuario {
   ordenesPago         OrdenPago[]
   complejosDueno      Complejo[]       @relation("Dueno")
   complejoEncargado   Complejo?        @relation("Encargado")
-
+  
   @@map("usuario")
 }
 
@@ -74,9 +74,10 @@ model Complejo {
   id           Int         @id @default(autoincrement())
   direccion    String
   nombre       String
-  telefono     String
+  telefono     String?
   instagram    String?
   imagenUrl    String?
+  estado       String      @default("Activo")
   localidadId  Int
   localidad    Localidad   @relation(fields: [localidadId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "complejo_localidadId_fkey")
   duenoId      Int

@@ -397,14 +397,14 @@ async function main() {
   await prisma.cancha.createMany({
     data: [
       // Canchas Complejo 1
-      { nro: 1, complejoId: 1, tipoCanchaId: 2 ,estado:'activo'}, // Futbol 5
-      { nro: 2, complejoId: 1, tipoCanchaId: 3 ,estado:'activo'}, // Futbol 7
-      { nro: 3, complejoId: 1, tipoCanchaId: 5 ,estado:'activo'}, // Pádel
-      { nro: 4, complejoId: 1, tipoCanchaId: 1 ,estado:'inactivo'}, // Pádel
+      { nro: 1, complejoId: 1, tipoCanchaId: 2 ,estado:'Activo'}, // Futbol 5
+      { nro: 2, complejoId: 1, tipoCanchaId: 3 ,estado:'Activo'}, // Futbol 7
+      { nro: 3, complejoId: 1, tipoCanchaId: 5 ,estado:'Activo'}, // Pádel
+      { nro: 4, complejoId: 1, tipoCanchaId: 1 ,estado:'Inactivo'}, // Pádel
 
       // Canchas Complejo 2
-      { nro: 1, complejoId: 2, tipoCanchaId: 2 ,estado:'activo'}, // Futbol 5
-      { nro: 2, complejoId: 2, tipoCanchaId: 6 ,estado:'activo'}, // Tenis
+      { nro: 1, complejoId: 2, tipoCanchaId: 2 ,estado:'Activo'}, // Futbol 5
+      { nro: 2, complejoId: 2, tipoCanchaId: 6 ,estado:'Activo'}, // Tenis
     ],
     skipDuplicates: true,
   });

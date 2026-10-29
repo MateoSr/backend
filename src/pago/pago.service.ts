@@ -99,11 +99,18 @@ export async function crearOrdenPago(payload: any, clienteId: number) {
 
   if (!complejoId || !canchaNro || !fecha || !horaInicio) throw new Error("Faltan datos para crear la orden");
 
-  const duracionMin = Number(duracion || 60);
-  const [h, m] = horaInicio.split(":").map(Number);
-  const fechaBase = new Date(`${fecha}T00:00:00`);
-  const inicio = new Date(fechaBase);
-  inicio.setHours(h, m, 0, 0);
+  const complejo = await prisma.complejo.findUnique({
+    where: { id: Number(complejoId) },
+    select: { estado: true },
+  });
+  if (!complejo || complejo.estado === "Inactivo") throw new Error("El complejo no está disponible");
+
+const duracionMin = Number(duracion || 60);
+  
+  // Concatenamos la fecha cruda, la hora y le clavamos el offset de Argentina (-03:00)
+  // Node va a leer "2026-10-28T18:00:00-03:00" y va a armar la fecha perfecta.
+  const inicio = new Date(`${fecha}T${horaInicio}:00-03:00`);
+  
   const fin = new Date(inicio);
   fin.setMinutes(fin.getMinutes() + duracionMin);
 

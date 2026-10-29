@@ -1,6 +1,8 @@
-import {getComplejoId,getComplejoDelEncargado,getAllComplejos,postComplejo,putComplejo,deleteComplejo,buscarComplejosDisponibles, getComplejoDelDueno} from './complejos.service.js'
+import {getComplejoId,getComplejoDelEncargado,getAllComplejos,postComplejo,putComplejo,deleteComplejo,bajaComplejo,buscarComplejosDisponibles, getComplejoDelDueno} from './complejos.service.js'
 import { ZodError } from 'zod';
-import {type Request, type Response} from 'express'
+import e, {type Request, type Response} from 'express'
+import cloudinary from '../config/cloudinary.js'
+import console from 'console';
 
 
 async function obtenerComplejos(req: Request, res: Response) {
@@ -73,7 +75,38 @@ async function obtenerComplejoDelDueno(req: Request, res: Response) {
 
 async function crearComplejo(req: Request, res: Response) {
     try{
-        const complejo = req.body
+        const complejo = { ...req.body }
+
+        if (complejo.imagenBase64) {
+            const base64Data = complejo.imagenBase64 as string;
+            const dataUriRegex = /^data:(image\/(jpeg|jpg|png|webp));base64,(.+)$/i;
+            const match = base64Data.match(dataUriRegex);
+
+            if (!match) {
+                return res.status(400).json({ error: 'Formato de imagen inválido. Solo se permiten JPG, PNG o WEBP.' });
+            }
+
+            const base64String = match[3];
+            const padding = base64String.endsWith('==') ? 2 : base64String.endsWith('=') ? 1 : 0;
+            const sizeInBytes = Math.floor((base64String.length * 3) / 4) - padding;
+            const maxSizeInBytes = 2 * 1024 * 1024;
+
+            if (sizeInBytes > maxSizeInBytes) {
+                return res.status(400).json({ error: 'La imagen supera los 2MB.' });
+            }
+
+            try {
+                const uploadResult = await cloudinary.uploader.upload(base64Data, {
+                    folder: 'complejos'
+                })
+                complejo.imagenUrl = uploadResult.secure_url
+            } catch (uploadError: any) {
+                console.log(uploadError)
+                return res.status(400).json({ error: 'Error al subir la imagen a Cloudinary' })
+            }
+            delete complejo.imagenBase64
+        }
+
         const resultado = await postComplejo(complejo)
         return res.status(201).json({
             message: 'Complejo creado correctamente',
@@ -83,9 +116,12 @@ async function crearComplejo(req: Request, res: Response) {
         }catch(error:any)
         {
         if (error instanceof ZodError) {
+            console.log("zod")
+            console.log(error.message)
         return res.status(400).json({
             message: "Error de validación en los datos ingresados",})
         }
+        console.log(error.message)
         return res.status(400).json({error:error.message})
         }
 }
@@ -101,6 +137,23 @@ async function modificarComplejo(req: Request, res: Response) {
         return res.status(200).json({
             message: 'Complejo modificado correctamente',
             complejo: complejoModificado
+        })
+        }catch(error:any)
+        {
+        return res.status(400).json({error:error.message})
+        }
+}
+
+async function darDeBajaComplejo(req: Request, res: Response) {
+    try{
+        const {id} = req.params
+        const complejo = await bajaComplejo(Number(id))
+        if(!complejo){
+            return res.status(404).json({message:"No se encontró el complejo"})
+        }
+        return res.status(200).json({
+            message: 'Complejo dado de baja correctamente',
+            complejo
         })
         }catch(error:any)
         {
@@ -156,5 +209,6 @@ export {
     crearComplejo,
     modificarComplejo,
     borrarComplejo,
+    darDeBajaComplejo,
     obtenerComplejosDisponibles
 };

@@ -9,7 +9,7 @@ async function iniciarSesion(req: Request, res: Response) {
     try {
         const { email, password } = req.body;
         const token = await login(String(email), String(password));
-        console.log(token)
+      
         return res.json({
             message:"Login exitoso",
             token: token
@@ -23,7 +23,7 @@ async function iniciarSesionAdmin(req: Request, res: Response) {
     try {
         const { email, password } = req.body;
         const token = await loginAdmin(String(email), String(password));
-        console.log(token)
+   
         return res.json({
             message:"Login exitoso",
             token: token

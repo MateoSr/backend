@@ -51,8 +51,19 @@ async function verificarTurnoExistente(complejoId: number, canchaNro: number, fe
   return !!turnoExistente;
 }
 
+async function verificarComplejoActivo(complejoId: number): Promise<void> {
+  const complejo = await prisma.complejo.findUnique({
+    where: { id: complejoId },
+    select: { estado: true },
+  });
+  if (!complejo || complejo.estado === "Inactivo") {
+    throw new Error("El complejo no está disponible.");
+  }
+}
+
 async function postTurno(turno: Turno): Promise<TurnoSalida> {
   const datosValidados = turnoSchema.parse(turno);
+  await verificarComplejoActivo(datosValidados.complejoId);
   const ahora = new Date();
   if (datosValidados.fechaInicio < ahora) {
     throw new Error("No se pueden crear turnos para fechas u horarios pasados.");
@@ -111,6 +122,7 @@ async function postTurno(turno: Turno): Promise<TurnoSalida> {
 // clienteId en null y los datos del solicitante en nombreSolicitante/apellidoSolicitante.
 async function postTurnoComoEncargado(turno: Turno, cliente: { nombre: string; apellido: string; telefono?: string; email?: string }): Promise<TurnoSalida> {
   const datosValidados = turnoSchema.parse(turno);
+  await verificarComplejoActivo(datosValidados.complejoId);
   const ahora = new Date();
   if (datosValidados.fechaInicio < ahora) {
     throw new Error("No se pueden crear turnos para fechas u horarios pasados.");
@@ -241,7 +253,7 @@ export async function getEstadisticasHoyDueno(duenoId: number) {
       where: {
         fechaInicio: { gte: inicioHoyUTC, lte: finHoyUTC },
         estado: { notIn: ['Cancelado', 'Cancelada'] },
-        complejo: { duenoId },
+        complejo: { duenoId, estado: { not: 'Inactivo' } },
         cancha: { estado: { notIn: ['Inactivo', 'Inactiva'] } },
       },
       include: {
@@ -260,7 +272,7 @@ export async function getEstadisticasHoyDueno(duenoId: number) {
     // Consultar cantidad de canchas activas en total
     prisma.cancha.count({
       where: {
-        complejo: { duenoId },
+        complejo: { duenoId, estado: { not: 'Inactivo' } },
         estado: { notIn: ['Inactivo', 'Inactiva'] },
       },
     }),
