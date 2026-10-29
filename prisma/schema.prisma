@@ -87,8 +87,19 @@ model Complejo {
   horarios     Horario[]
   turnos       Turno[]     @relation("ComplejoTurnos")
   ordenesPago  OrdenPago[]
+  opiniones    Opinion[]
 
   @@map("complejo")
+}
+
+model Opinion {
+  id          Int      @id @default(autoincrement())
+  descripcion String
+  fecha       DateTime @default(now()) @db.Timestamptz(6)
+  id_complejo Int
+  complejo    Complejo @relation(fields: [id_complejo], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "opinion_id_complejo_fkey")
+
+  @@map("opinion")
 }
 
 model TipoCancha {

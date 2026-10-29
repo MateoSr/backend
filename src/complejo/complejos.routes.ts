@@ -4,6 +4,7 @@ import { autenticar } from "../middleware/autenticas.js";
 import {obtenerHorario,obtenerHorarios,crearHorario,modificarHorario,borrarHorario} from "../horario/horario.controller.js"
 import {obtenerCancha,crearCancha,modificarCancha,borrarCancha, obtenerCanchas} from "../cancha/cancha.controller.js"
 import {obtenerPrecio,obtenerPrecios,crearPrecio} from "../precio/precio.controller.js"
+import { crearOpinion } from "../opinion/opinion.controller.js"
 
 const complejoRouter = Router()
 //Busqueda de complejos de una ciudad de un deporte de una fecha y hora determinada
@@ -20,6 +21,9 @@ complejoRouter.get("/:id",obtenerComplejo)
 complejoRouter.post("/",crearComplejo)
 complejoRouter.put("/:id",modificarComplejo)
 complejoRouter.delete("/:id",borrarComplejo)
+
+//rutas para las opiniones de un complejo
+complejoRouter.post("/:id/opiniones", crearOpinion)
 
 //rutas para obtener los horarios de un complejo
 //horario es debil de complejo

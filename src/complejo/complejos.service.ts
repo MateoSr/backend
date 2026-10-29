@@ -50,6 +50,9 @@ async function getComplejoId(id: number): Promise<ComplejoSalida | null> {
     include: {
       localidad: true,
       horarios: true,
+      opiniones: {
+        orderBy: { fecha: 'desc' },
+      },
       canchas: {
         include: {
           tipoCancha: true,
