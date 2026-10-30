@@ -1,0 +1,148 @@
+import {getTurnoId,getAllTurnos,postTurno,postTurnoComoEncargado,putTurno,deleteTurno,getTurnoPorComplejo,cancelarTurnoServicio} from './turno.service.js'
+import {type Request,type Response} from 'express'
+import { ZodError } from 'zod'; //modulo que permimte mostrar los errores de tipos de datos
+async function obtenerTurnos(req:Request,res:Response) {
+    try{
+        const userId = req.usuario?.userId; 
+        const turnos = await getAllTurnos({clienteId: userId })
+        if(turnos.length === 0){
+            return res.status(404).json({message:"No hay turnos"})
+        }
+        return res.status(200).json(turnos)
+        }catch(error:any)
+        {
+        return res.status(400).json({error:error.message})
+        }
+}
+
+async function obtenerTurno(req:Request,res:Response) {
+    try{
+        const {id} = req.params
+        const turno = await getTurnoId(Number(id))
+        if(!turno){
+            return res.status(404).json({message:"No se encontró el turno"})
+        }
+        return res.status(200).json(turno)
+        }catch(error:any)
+        {
+        return res.status(400).json({error:error.message})
+        }
+}
+
+async function obtenerTurnoPorComplejo(req:Request,res:Response) {
+    try{
+        const {id} = req.params
+        const turno = await getTurnoPorComplejo(Number(id))
+        if(!turno){
+            return res.status(404).json({message:"No se encontraron turnos para ese complejo"})
+        }
+        return res.status(200).json(turno)
+        }catch(error:any)
+        {
+        return res.status(400).json({error:error.message})
+        }
+}
+
+async function crearTurno(req:Request,res:Response) {
+    try{
+        const turno = req.body
+        const resultado = await postTurno(turno)
+        return res.status(201).json({
+            message: 'Turno creado correctamente',
+            turno: resultado
+        })
+
+        }catch(error:any)
+        {
+        if (error instanceof ZodError) {
+        return res.status(400).json({
+            message: "Error de validación en los datos ingresados",})
+        }
+        console.log(error.message)
+        return res.status(400).json({error:error.message})
+        }
+}
+
+async function crearTurnoComoEncargado(req:Request,res:Response) {
+    if (req.usuario?.rol !== "Encargado") {
+        return res.status(403).json({ message: "Solo un encargado puede agendar de esta forma" });
+    }
+
+    try {
+        const { cliente, turno } = req.body;
+        const resultado = await postTurnoComoEncargado(turno, cliente);
+        return res.status(201).json({ message: 'Turno agendado correctamente', turno: resultado });
+    } catch(error:any) {
+        if (error instanceof ZodError) {
+            return res.status(400).json({ message: "Error de validación en los datos ingresados", detalles: error.issues });
+        }
+        return res.status(400).json({error:error.message});
+    }
+}
+
+async function modificarTurno(req:Request,res:Response) {
+    try{
+        const {id} = req.params
+        const turnoModificado = req.body
+        const resultado = await putTurno(Number(id),turnoModificado)
+        if(!resultado){
+            return res.status(404).json({message:"No se encontró el turno"})
+        }
+        return res.status(200).json({
+            message: 'Turno modificado correctamente',
+            turno: turnoModificado
+        })
+        }catch(error:any)
+        {
+        return res.status(400).json({error:error.message})
+        }
+}
+
+async function borrarTurno(req:Request,res:Response) {
+    try{
+        const {id} = req.params
+        const response = await deleteTurno(Number(id))
+        if(!response){
+            return res.status(404).json({message:"No se encontró el turno"})
+        }
+        return res.status(200).json({
+            message: 'Turno eliminado correctamente',
+        })
+        }catch(error:any)
+        {
+        return res.status(400).json({error:error.message})
+        }
+}
+
+async function cancelarTurno(req: Request, res: Response) {
+  try {
+    const {id} = req.params;
+    const turnoId = Number(id);
+
+    if (isNaN(turnoId)) {
+      return res.status(400).json({ error: 'El ID del turno es inválido.' });
+    }
+
+    const turnoActualizado = await cancelarTurnoServicio(turnoId);
+
+    return res.status(200).json({
+      message: 'Turno cancelado con éxito',
+      turno: turnoActualizado,
+    });
+  } catch (error: any) {
+    return res.status(400).json({ error: error.message || 'Error al intentar cancelar el turno.' });
+  }
+}
+
+
+export {
+  obtenerTurno,
+  obtenerTurnos,
+  crearTurno,
+  crearTurnoComoEncargado,
+  modificarTurno,
+  borrarTurno,
+  obtenerTurnoPorComplejo,
+  cancelarTurno,
+  
+};

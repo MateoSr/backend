@@ -1,0 +1,153 @@
+import {getAllUsers,getClientes,getUserId,postUser,deleteUser,putUser} from "./users.service.js"
+import {getPersonaFisicaDni} from "../personaFisica/personaFisica.service.js";
+import { ZodError } from 'zod'; //modulo que permimte mostrar los errores de tipos de datos
+import { type Request, type Response } from "express";
+
+async function obtenerUsers(req:Request,res:Response) {
+    try{
+        const users = await getAllUsers()
+        return res.status(200).json(users)
+        }catch(error:any){
+        return res.status(400).json({error:error.message})
+    }
+}
+
+async function obtenerClientes(req:Request,res:Response) {
+    if (req.usuario?.rol !== "Encargado") {
+        return res.status(403).json({ message: "Solo un encargado puede consultar clientes" });
+    }
+
+    try {
+        return res.status(200).json(await getClientes())
+    } catch(error:any) {
+        return res.status(400).json({error:error.message})
+    }
+}
+
+async function obtenerUser(req:Request,res:Response) {
+    try{
+        const {id} = req.params
+        const user = await getUserId(Number(id))
+        if(!user){
+            return res.status(404).json({message:"No se encontró el usuario"})
+        }
+        return res.status(200).json(user)
+        }catch(error:any)
+        {
+        return res.status(400).json({error:error.message})
+        }
+}
+
+async function obtenerUserCompleto(req:Request,res:Response) {
+    try{
+
+        const userId = req.usuario?.userId; 
+        if (!userId) {
+            return res.status(401).json({ message: "Usuario no autenticado en la petición" });
+        }
+
+        const user = await getUserId(Number(userId))
+        if(!user){
+            return res.status(404).json({message:"No se encontró el usuario"})
+        }
+        const personaFisica = await getPersonaFisicaDni(user.personaFisicaDni!)
+        if(!personaFisica){
+            return res.status(404).json({message:"No se encontró la persona"})
+        }
+
+        const respuesta = {
+            "id":user.id,
+            "nombre":personaFisica.nombre,
+            "apellido":personaFisica.apellido,
+            "email":user.email,
+            // "password":user.password,
+            "telefono":user.telefono,
+            fechaNacimiento: personaFisica.fechaNacimiento ? new Date(personaFisica.fechaNacimiento).toISOString().split('T')[0] : ""
+        }
+        return res.status(200).json(respuesta)
+
+    }catch(error:any)
+        {
+        return res.status(400).json({error:error.message})
+        }
+}
+
+async function crearUser(req:Request,res:Response) {
+    try{
+        const user = req.body
+        const resultado = await postUser(user)
+        if(!resultado){
+
+            return res.status(401).json({
+                error: 'Error'
+            })
+        }
+        return res.status(201).json({
+            message: 'Usuario creado correctamente',
+            user: resultado
+        })
+
+        }catch(error:any)
+        {
+        if (error instanceof ZodError) {
+            console.log(error);
+        return res.status(400).json({
+            message: "Error de validación en los datos ingresados",
+            detalles: error.issues});
+        }
+        return res.status(400).json({error:error.message})
+        }
+}
+
+async function modificarUser(req:Request,res:Response) {
+    try{
+        const userId = req.usuario?.userId; 
+        console.log("ID del usuario autenticado:", userId);
+
+        if (!userId) {
+            return res.status(401).json({ message: "Usuario no autenticado en la petición" });
+        }
+        
+        const userModificado = req.body
+        const resultado = await putUser(Number(userId),userModificado)
+        if(!resultado){
+            return res.status(404).json({message:"No se encontró el usuario"})
+        }
+        return res.status(200).json({
+            message: 'Usuario modificado correctamente',
+            user: userModificado
+        })
+        }catch(error:any)
+        {
+        return res.status(400).json({error:error.message})
+        }
+}
+
+async function borrarUser(req:Request,res:Response) {
+    try{
+        const {id} = req.params
+        const response = await deleteUser(Number(id))
+        if(!response){
+            return res.status(404).json({message:"No se encontró el usuario"})
+        }
+        return res.status(200).json({
+            message: 'Usuario eliminado correctamente',
+        })
+        }catch(error:any)
+        {
+        return res.status(400).json({error:error.message})
+        }
+}
+
+
+
+
+export {
+  obtenerUsers,
+    obtenerClientes,
+  obtenerUser,
+  crearUser,
+  borrarUser,
+  modificarUser,
+  obtenerUserCompleto
+};

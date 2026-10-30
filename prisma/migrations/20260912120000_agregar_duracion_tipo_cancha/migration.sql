@@ -1,0 +1,2 @@
+ALTER TABLE "tipoCancha"
+ADD COLUMN "duracion" INTEGER NOT NULL DEFAULT 60;
