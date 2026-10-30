@@ -6,7 +6,7 @@ const brevo = new BrevoClient({
 
 export async function enviarEmailResetPassword(email: string, userId: number) {
   const resetToken = (await import('../shared/jwt.js')).emitirTokenReset(userId);
-  const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+  const resetUrl = `${process.env.FRONTEND_PUBLIC_URL}/reset-password?token=${resetToken}`;
 
   await brevo.transactionalEmails.sendTransacEmail({
     subject: "Restablece tu contraseña - Turno Libre",
@@ -25,8 +25,8 @@ export async function enviarEmailResetPassword(email: string, userId: number) {
         <h2>Restablecimiento de contraseña</h2>
         <p>Has solicitado restablecer tu contraseña. Haz clic en el siguiente enlace para continuar:</p>
         <a href="${resetUrl}" 
-           style="background-color: #eb6e25; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
-           Restablecer Contraseña
+          style="background-color: #eb6e25; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
+          Restablecer Contraseña
         </a>
         <p style="margin-top: 20px; color: #666; font-size: 12px;">
           Si no solicitaste este cambio, puedes ignorar este correo.
