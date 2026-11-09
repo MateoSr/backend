@@ -423,8 +423,133 @@ async function getCapacidadTotalDuenoPorDia(duenoId: number,fecha: Date = new Da
 
   return capacidadTotal;
 }
+const ZONA_COMPLEJO_POR_DEFECTO = "America/Argentina/Buenos_Aires";
+
+async function getDisponibilidadComplejo(complejoId: number, fecha: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
+    throw new Error("Fecha inválida. Formato esperado YYYY-MM-DD");
+  }
+
+  const inicioDiaUTC = new Date(`${fecha}T00:00:00-03:00`);
+  if (isNaN(inicioDiaUTC.getTime())) {
+    throw new Error("Fecha inválida.");
+  }
+  const finVentanaUTC = new Date(inicioDiaUTC.getTime() + 48 * 60 * 60 * 1000);
+
+  const complejo = await prisma.complejo.findUnique({
+    where: { id: complejoId },
+    include: {
+      horarios: true,
+      canchas: {
+        where: { estado: { notIn: ["Inactivo", "Inactiva"] } },
+        include: {
+          tipoCancha: true,
+          turnos: {
+            where: {
+              estado: { notIn: ["Cancelado", "Cancelada"] },
+              AND: [
+                { fechaInicio: { lt: finVentanaUTC } },
+                { fechaFin: { gt: inicioDiaUTC } },
+              ],
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!complejo || complejo.estado === "Inactivo") {
+    throw new Error("El complejo no está disponible");
+  }
+
+  const zona = ZONA_COMPLEJO_POR_DEFECTO;
+  const dia = new Date(`${fecha}T00:00:00Z`).getUTCDay() || 7;
+  const horario = complejo.horarios.find((h) => h.nroDia === dia);
+
+  const base = {
+    complejoId: complejo.id,
+    timezone: zona,
+    fecha,
+    abierto: false,
+    duracionGrilla: 0,
+    columnas: [] as Array<{ inicio: string; fin: string; pasado: boolean }>,
+    canchas: [] as Array<{
+      nro: number;
+      deporte: string;
+      duracion: number;
+      celdas: Array<{ disponible: boolean; turnoId: number | null }>;
+    }>,
+  };
+
+  if (!horario) return base;
+
+  const canchas = complejo.canchas;
+  if (canchas.length === 0) return { ...base, abierto: true };
+
+  const apertura = obtenerMinutosDesdeMedianoche(horario.horaApertura);
+  let cierre = obtenerMinutosDesdeMedianoche(horario.horaCierre);
+  if (cierre <= apertura) cierre += 24 * 60;
+
+  const duracionGrilla = Math.min(
+    ...canchas.map((c) => Number(c.tipoCancha?.duracion) || 60),
+    60
+  );
+  const totalBloques = Math.floor((cierre - apertura) / duracionGrilla);
+
+  if (totalBloques <= 0) return { ...base, abierto: true };
+
+  const ahora = new Date();
+  const baseMs = inicioDiaUTC.getTime();
+
+  const columnas = Array.from({ length: totalBloques }, (_, i) => {
+    const inicioMin = apertura + i * duracionGrilla;
+    const finMin = Math.min(inicioMin + duracionGrilla, cierre);
+    const inicio = new Date(baseMs + inicioMin * 60 * 1000);
+    const fin = new Date(baseMs + finMin * 60 * 1000);
+    return {
+      inicio: inicio.toISOString(),
+      fin: fin.toISOString(),
+      pasado: inicio < ahora,
+    };
+  });
+
+  const canchasResp = canchas.map((cancha) => {
+    const duracion = Number(cancha.tipoCancha?.duracion) || 60;
+    const celdas = columnas.map((col) => {
+      const inicio = new Date(col.inicio);
+      const fin = new Date(col.fin);
+      const turno = (cancha.turnos ?? []).find((t) => {
+        const tInicio = new Date(t.fechaInicio);
+        const tFin = new Date(t.fechaFin);
+        return tInicio < fin && tFin > inicio;
+      });
+      return {
+        disponible: !turno,
+        turnoId: turno?.id ?? null,
+      };
+    });
+    return {
+      nro: cancha.nro,
+      deporte: cancha.tipoCancha?.deporte ?? "Deporte no especificado",
+      duracion,
+      celdas,
+    };
+  });
+
+  return {
+    complejoId: complejo.id,
+    timezone: zona,
+    fecha,
+    abierto: true,
+    duracionGrilla,
+    columnas,
+    canchas: canchasResp,
+  };
+}
+
 export {
     getComplejoId,
+    getDisponibilidadComplejo,
     getComplejoDelEncargado,
     getComplejoDelDueno,
     postComplejo,

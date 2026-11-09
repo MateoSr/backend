@@ -1,5 +1,5 @@
 import { Router } from "express";
-import {obtenerComplejo,obtenerComplejoDelEncargado,obtenerComplejos,crearComplejo,modificarComplejo,borrarComplejo,darDeBajaComplejo,obtenerComplejosDisponibles,obtenerComplejoDelDueno} from "./complejos.controller.js"
+import {obtenerComplejo,obtenerDisponibilidad,obtenerComplejoDelEncargado,obtenerComplejos,crearComplejo,modificarComplejo,borrarComplejo,darDeBajaComplejo,obtenerComplejosDisponibles,obtenerComplejoDelDueno} from "./complejos.controller.js"
 import { autenticar } from "../middleware/autenticas.js";
 import {obtenerHorario,obtenerHorarios,crearHorario,modificarHorario,borrarHorario} from "../horario/horario.controller.js"
 import {obtenerCancha,crearCancha,modificarCancha,borrarCancha, obtenerCanchas} from "../cancha/cancha.controller.js"
@@ -17,6 +17,7 @@ complejoRouter.get("/dueno", autenticar, autorizarPorNombre("Dueño"), obtenerCo
 
 //rutas propias de complejo
 complejoRouter.get("/",autenticar,autorizarPorNombre("Administrador"),obtenerComplejos)
+complejoRouter.get("/:id/disponibilidad", obtenerDisponibilidad)
 complejoRouter.get("/:id",obtenerComplejo)
 complejoRouter.post("/",autenticar,autorizarPorNombre("Administrador"),crearComplejo)
 complejoRouter.put("/:id",autenticar,autorizarPorNombre("Dueño"),modificarComplejo)

@@ -95,9 +95,10 @@ async function obtenerPrecioSeniaVigente(complejoId: number, canchaNro: number, 
 }
 
 export async function crearOrdenPago(payload: any, clienteId: number) {
-  const { complejoId, canchaNro, fecha, horaInicio, duracion, tipoTurnoId } = payload;
+  const { complejoId, canchaNro, fecha, horaInicio, fechaInicio, duracion } = payload;
 
-  if (!complejoId || !canchaNro || !fecha || !horaInicio) throw new Error("Faltan datos para crear la orden");
+  if (!complejoId || !canchaNro) throw new Error("Faltan datos para crear la orden");
+  if (!fechaInicio && (!fecha || !horaInicio)) throw new Error("Faltan datos para crear la orden");
 
   const complejo = await prisma.complejo.findUnique({
     where: { id: Number(complejoId) },
@@ -105,11 +106,14 @@ export async function crearOrdenPago(payload: any, clienteId: number) {
   });
   if (!complejo || complejo.estado === "Inactivo") throw new Error("El complejo no está disponible");
 
-const duracionMin = Number(duracion || 60);
-  
-  // Concatenamos la fecha cruda, la hora y le clavamos el offset de Argentina (-03:00)
-  // Node va a leer "2026-10-28T18:00:00-03:00" y va a armar la fecha perfecta.
-  const inicio = new Date(`${fecha}T${horaInicio}:00-03:00`);
+  const duracionMin = Number(duracion || 60);
+
+  // El frontend envia el instante UTC elegido (fechaInicio ISO).
+  // Se mantiene el fallback con fecha + horaInicio en hora de Argentina (-03:00).
+  const inicio = fechaInicio
+    ? new Date(fechaInicio)
+    : new Date(`${fecha}T${horaInicio}:00-03:00`);
+  if (isNaN(inicio.getTime())) throw new Error("La fecha de inicio es inválida");
   
   const fin = new Date(inicio);
   fin.setMinutes(fin.getMinutes() + duracionMin);
