@@ -1,8 +1,7 @@
 import {getComplejoId,getComplejoDelEncargado,getAllComplejos,postComplejo,putComplejo,deleteComplejo,bajaComplejo,buscarComplejosDisponibles, getComplejoDelDueno} from './complejos.service.js'
 import { ZodError } from 'zod';
-import e, {type Request, type Response} from 'express'
+import {type Request, type Response} from 'express'
 import cloudinary from '../config/cloudinary.js'
-import console from 'console';
 
 
 async function obtenerComplejos(req: Request, res: Response) {

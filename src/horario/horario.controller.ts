@@ -35,7 +35,7 @@ async function crearHorario(req: Request, res: Response) {
     try{
         const {id_complejo} = req.params
         const horario = req.body
-        const resultado = await postHorario(horario, Number(id_complejo))
+        await postHorario(horario, Number(id_complejo))
         return res.status(201).json({
             message: 'Horario creado correctamente',
             horario: horario

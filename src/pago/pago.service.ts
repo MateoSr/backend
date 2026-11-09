@@ -95,7 +95,7 @@ async function obtenerPrecioSeniaVigente(complejoId: number, canchaNro: number, 
 }
 
 export async function crearOrdenPago(payload: any, clienteId: number) {
-  const { complejoId, canchaNro, fecha, horaInicio, duracion, tipoTurnoId } = payload;
+  const { complejoId, canchaNro, fecha, horaInicio, duracion } = payload;
 
   if (!complejoId || !canchaNro || !fecha || !horaInicio) throw new Error("Faltan datos para crear la orden");
 

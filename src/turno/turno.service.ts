@@ -11,21 +11,6 @@ export interface FiltrosTurno {
   clienteId?: number;
 }
 
-// const turnos:TurnoSalida[] =  
-//   {"id": 1, "id_cliente": 1, "id_tipo_turno": 1, "id_complejo": 10, "nro_cancha": 1,"fecha":"2000-01-01", "horarioInicio": "18:00", "horarioFin": "19:30", "estado": "reservado"},
-//   {"id": 2, "id_cliente": 1, "id_tipo_turno": 1, "id_complejo": 10, "nro_cancha": 2,"fecha":"2000-01-01", "horarioInicio": "19:30", "horarioFin": "21:00", "estado": "reservado"},
-//   {"id": 3, "id_cliente": 1, "id_tipo_turno": 2, "id_complejo": 12, "nro_cancha": 3,"fecha":"2000-01-01", "horarioInicio": "21:00", "horarioFin": "22:30", "estado": "completado"},
-//   {"id": 4, "id_cliente": 2, "id_tipo_turno": 1, "id_complejo": 10, "nro_cancha": 1,"fecha":"2000-01-01" ,"horarioInicio": "19:00", "horarioFin": "20:30", "estado": "reservado"},
-//   {"id": 5, "id_cliente": 2, "id_tipo_turno": 1, "id_complejo": 11, "nro_cancha": 1,"fecha":"2000-01-01" ,"horarioInicio": "20:00", "horarioFin": "21:30", "estado": "cancelado", "motivoCancelacion": "Lluvia intensa y filtraciones en cancha"},
-//   {"id": 6, "id_cliente": 3, "id_tipo_turno": 2, "id_complejo": 12, "nro_cancha": 2,"fecha":"2000-01-01" ,"horarioInicio": "17:00", "horarioFin": "18:30", "estado": "reservado"},
-//   {"id": 7, "id_cliente": 1, "id_tipo_turno": 1, "id_complejo": 11, "nro_cancha": 4,"fecha":"2000-01-01", "horarioInicio": "20:30", "horarioFin": "22:00", "estado": "reservado"},
-//   {"id": 8, "id_cliente": 4, "id_tipo_turno": 1, "id_complejo": 10, "nro_cancha": 1,"fecha":"2000-01-01", "horarioInicio": "18:30", "horarioFin": "20:00", "estado": "completado"},
-//   {"id": 9, "id_cliente": 2, "id_tipo_turno": 2, "id_complejo": 12, "nro_cancha": 1,"fecha":"2000-01-01", "horarioInicio": "22:00", "horarioFin": "23:30", "estado": "cancelado", "motivoCancelacion": "Aviso del cliente por motivos personales"},
-//   {"id": 10, "id_cliente": 3, "id_tipo_turno": 1, "id_complejo": 10, "nro_cancha": 3,"fecha":"2000-01-01", "horarioInicio": "19:00", "horarioFin": "20:30", "estado": "reservado"}
-
-// ]
-
-
 async function getTurnoId(id:number): Promise<TurnoSalida | null> {    const turno = await prisma.turno.findUnique({
         where:{id}
     })
@@ -246,37 +231,26 @@ export async function getEstadisticasHoyDueno(duenoId: number) {
   // Fin del día en AR = 23:59:59.999 AR = 02:59:59.999 UTC del día siguiente
   const finHoyUTC = new Date(Date.UTC(year, month - 1, day + 1, 2, 59, 59, 999));
 
-  // 1. Ejecutamos las consultas en paralelo
-  const [turnosHoy, canchasActivas] = await Promise.all([
-    // Consultar turnos de hoy con tipoCancha para saber el deporte
-    prisma.turno.findMany({
-      where: {
-        fechaInicio: { gte: inicioHoyUTC, lte: finHoyUTC },
-        estado: { notIn: ['Cancelado', 'Cancelada'] },
-        complejo: { duenoId, estado: { not: 'Inactivo' } },
-        cancha: { estado: { notIn: ['Inactivo', 'Inactiva'] } },
-      },
-      include: {
-        cancha: {
-          include: {
-            tipoCancha: true,
-            precios: {
-              orderBy: { fechaDesde: 'desc' },
-              take: 1,
-            },
+  // Consultar turnos de hoy con tipoCancha para saber el deporte
+  const turnosHoy = await prisma.turno.findMany({
+    where: {
+      fechaInicio: { gte: inicioHoyUTC, lte: finHoyUTC },
+      estado: { notIn: ['Cancelado', 'Cancelada'] },
+      complejo: { duenoId, estado: { not: 'Inactivo' } },
+      cancha: { estado: { notIn: ['Inactivo', 'Inactiva'] } },
+    },
+    include: {
+      cancha: {
+        include: {
+          tipoCancha: true,
+          precios: {
+            orderBy: { fechaDesde: 'desc' },
+            take: 1,
           },
         },
       },
-    }),
-
-    // Consultar cantidad de canchas activas en total
-    prisma.cancha.count({
-      where: {
-        complejo: { duenoId, estado: { not: 'Inactivo' } },
-        estado: { notIn: ['Inactivo', 'Inactiva'] },
-      },
-    }),
-  ]);
+    },
+  });
 
   // Calculo cantidad de turnos de hoy
   const cantidadTurnos = turnosHoy.length;
