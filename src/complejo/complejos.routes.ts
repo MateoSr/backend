@@ -1,15 +1,5 @@
 import { Router } from "express";
-import {
-  obtenerComplejo,
-  obtenerComplejoDelEncargado,
-  obtenerComplejos,
-  crearComplejo,
-  modificarComplejo,
-  borrarComplejo,
-  darDeBajaComplejo,
-  obtenerComplejosDisponibles,
-  obtenerComplejoDelDueno
-} from "./complejos.controller.js";
+import {obtenerComplejo,obtenerDisponibilidad,obtenerComplejoDelEncargado,obtenerComplejos,crearComplejo,modificarComplejo,borrarComplejo,darDeBajaComplejo,obtenerComplejosDisponibles,obtenerComplejoDelDueno} from "./complejos.controller.js"
 import { autenticar } from "../middleware/autenticas.js";
 import { autorizarPorNombre } from "../middleware/autorizar.js";
 import {
@@ -42,6 +32,7 @@ complejoRouter.get("/dueno", autenticar, autorizarPorNombre("Dueño"), obtenerCo
 
 // Rutas propias de complejo
 complejoRouter.get("/", autenticar, autorizarPorNombre("Administrador"), obtenerComplejos);
+complejoRouter.get("/:id/disponibilidad", obtenerDisponibilidad)
 complejoRouter.get("/:id", obtenerComplejo);
 complejoRouter.post("/", autenticar, autorizarPorNombre("Administrador"), crearComplejo);
 complejoRouter.put("/:id", autenticar, autorizarPorNombre("Dueño"), modificarComplejo);

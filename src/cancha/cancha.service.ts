@@ -9,7 +9,10 @@ async function getCanchaNro(nro: number, id_complejo: number) {
             },
             nro: nro 
         },
-        include: {precios: {orderBy: {fechaDesde: 'desc'}, take: 1}}
+        include: {
+            tipoCancha: true,
+            precios: {orderBy: {fechaDesde: 'desc'}, take: 1}
+        }
     })
 }
 

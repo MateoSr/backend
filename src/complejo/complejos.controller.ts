@@ -1,4 +1,4 @@
-import {getComplejoId,getComplejoDelEncargado,getAllComplejos,postComplejo,putComplejo,deleteComplejo,bajaComplejo,buscarComplejosDisponibles, getComplejoDelDueno} from './complejos.service.js'
+import {getComplejoId,getComplejoDelEncargado,getAllComplejos,postComplejo,putComplejo,deleteComplejo,bajaComplejo,buscarComplejosDisponibles, getComplejoDelDueno, getDisponibilidadComplejo} from './complejos.service.js'
 import { ZodError } from 'zod';
 import {type Request, type Response} from 'express'
 import cloudinary from '../config/cloudinary.js'
@@ -29,6 +29,23 @@ async function obtenerComplejo(req: Request, res: Response) {
         {
         return res.status(400).json({error:error.message})
         }
+}
+
+async function obtenerDisponibilidad(req: Request, res: Response) {
+    try {
+        const complejoId = Number(req.params.id);
+        if (!Number.isInteger(complejoId)) {
+            return res.status(400).json({ message: "El id del complejo es inválido." });
+        }
+
+        const fechaParam = typeof req.query.fecha === "string" ? req.query.fecha : undefined;
+        const fecha = fechaParam || new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
+        const disponibilidad = await getDisponibilidadComplejo(complejoId, fecha);
+        return res.status(200).json(disponibilidad);
+    } catch (error: any) {
+        return res.status(400).json({ error: error.message });
+    }
 }
 
 async function obtenerComplejoDelEncargado(req: Request, res: Response) {
@@ -202,6 +219,7 @@ async function obtenerComplejosDisponibles(req: Request, res: Response) {
 
 export {
     obtenerComplejo,
+    obtenerDisponibilidad,
     obtenerComplejoDelEncargado,
     obtenerComplejoDelDueno,
     obtenerComplejos,
