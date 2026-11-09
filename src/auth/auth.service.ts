@@ -30,17 +30,3 @@ export async function login(email: string, password: string): Promise<{token: st
     token
   };
 }
-
-export async function loginAdmin(email: string, password: string): Promise<{token: string} | null> {
-  const user = await getUserEmail(email);
-  if (!user) throw new Error("Credenciales inválidas");
-
-
-  const coincide = await bcrypt.compare(password, user.password);
-  if (!coincide && user.tipoUsuarioId !== 1) throw new Error("Credenciales inválidas");
-  
-  const token = emitirToken({ userId: user.id, email: user.email, rol: user.tipoUsuario.descripcion });
-  return {
-    token
-  };
-}

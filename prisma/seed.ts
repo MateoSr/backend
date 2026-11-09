@@ -349,6 +349,27 @@ async function main() {
     },
   });
 
+  // 9.1 Opiniones de ejemplo
+  await prisma.opinion.createMany({
+    data: [
+      {
+        descripcion: "Excelente atención y canchas impecables.",
+        fecha: new Date("2026-10-20T15:30:00Z"),
+        id_complejo: complejo1.id,
+      },
+      {
+        descripcion: "Muy buena iluminación para jugar de noche.",
+        fecha: new Date("2026-10-25T23:10:00Z"),
+        id_complejo: complejo1.id,
+      },
+      {
+        descripcion: "El césped estaba en perfecto estado.",
+        fecha: new Date("2026-10-28T18:00:00Z"),
+        id_complejo: complejo2.id,
+      },
+    ],
+  });
+
   // 10. Horarios de Complejos (Lunes a Domingo)
   await prisma.horario.createMany({
     data: [
