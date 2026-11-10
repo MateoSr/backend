@@ -13,6 +13,25 @@ interface BusquedaFiltros {
   hora?: string;
   min?: number;
   max?: number;
+  sort?: string;
+  page?: number;
+  limit?: number;
+}
+
+function ordenarComplejos(resultados: any[], sort: string): any[] {
+  const ordenados = [...resultados];
+  switch (sort) {
+    case "precio_menor":
+      return ordenados.sort((a, b) => a.precio - b.precio);
+    case "precio_mayor":
+      return ordenados.sort((a, b) => b.precio - a.precio);
+    case "nombre_az":
+      return ordenados.sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
+    case "nombre_za":
+      return ordenados.sort((a, b) => b.nombre.localeCompare(a.nombre, "es"));
+    default:
+      return ordenados;
+  }
 }
 
 function minutosDesdeHora(valor: Date | string): number {
@@ -186,9 +205,9 @@ async function deleteComplejo(id: number): Promise<boolean> {
   }
 }
 
-async function buscarComplejosDisponibles(filtros: BusquedaFiltros): Promise<any[]> {
+async function buscarComplejosDisponibles(filtros: BusquedaFiltros): Promise<{ total: number; data: any[] }> {
   //agarramos filtros
-  const { ciudad, deporte, fecha, hora, min = 0, max = Infinity } = filtros;
+  const { ciudad, deporte, fecha, hora, min = 0, max = Infinity, sort = "relevantes", page = 1, limit = 12 } = filtros;
   const ciudadNormalizada = ciudad?.trim();
 
   //convertimos a fechas (fecha/hora se interpretan como hora local Argentina UTC-3)
@@ -346,7 +365,13 @@ async function buscarComplejosDisponibles(filtros: BusquedaFiltros): Promise<any
     }];
   });
 
-  return resultados.filter((complejo) => complejo.precio >= min && complejo.precio <= max);
+  const filtrados = resultados.filter((complejo) => complejo.precio >= min && complejo.precio <= max);
+  const ordenados = ordenarComplejos(filtrados, sort);
+  const total = ordenados.length;
+  const inicio = (page - 1) * limit;
+  const data = ordenados.slice(inicio, inicio + limit);
+
+  return { total, data };
 }
 
 async function getTurnosPosiblesPorDia(complejoId: number, fecha: Date): Promise<number> {

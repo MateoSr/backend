@@ -200,27 +200,43 @@ async function borrarComplejo(req: Request, res: Response) {
 }
 
 async function obtenerComplejosDisponibles(req: Request, res: Response) {
-    const ciudad = req.query.ciudad as string;
-    const deporte = req.query.deporte as string;
-    const fecha = req.query.fecha as string;
-    const hora = req.query.hora as string;
-    const min = req.query.min !== undefined ? Number(req.query.min) : undefined;
-    const max = req.query.max !== undefined ? Number(req.query.max) : undefined;
+    try {
+        const ciudad = req.query.ciudad as string;
+        const deporte = req.query.deporte as string;
+        const fecha = req.query.fecha as string;
+        const hora = req.query.hora as string;
+        const sort = typeof req.query.sort === "string" ? req.query.sort : "relevantes";
+        const min = req.query.min !== undefined ? Number(req.query.min) : undefined;
+        const max = req.query.max !== undefined ? Number(req.query.max) : undefined;
+        const page = req.query.page !== undefined ? Number(req.query.page) : 1;
+        const limit = req.query.limit !== undefined ? Number(req.query.limit) : 12;
 
         if ((min !== undefined && !Number.isFinite(min))
                 || (max !== undefined && !Number.isFinite(max))) {
                 return res.status(400).json({ message: "Los filtros de precio deben ser numéricos." });
         }
 
-        const resultados = await buscarComplejosDisponibles({ ciudad, deporte, fecha, hora, min, max });
-    if(resultados.length === 0) {
-      return res.status(404).json({ message: "No se encontraron complejos disponibles con los filtros proporcionados." });
-    }
+        if (!Number.isInteger(page) || page < 1) {
+            return res.status(400).json({ message: "El parámetro page debe ser un entero mayor o igual a 1." });
+        }
 
-    return res.json({
-      total: resultados.length,
-      data: resultados,
-    });
+        if (!Number.isInteger(limit) || limit < 1 || limit > 50) {
+            return res.status(400).json({ message: "El parámetro limit debe ser un entero entre 1 y 50." });
+        }
+
+        const { total, data } = await buscarComplejosDisponibles({ ciudad, deporte, fecha, hora, min, max, sort, page, limit });
+        const totalPages = Math.ceil(total / limit);
+
+        return res.status(200).json({
+            total,
+            page,
+            limit,
+            totalPages,
+            data,
+        });
+    } catch (error: any) {
+        return res.status(400).json({ error: error.message });
+    }
 }
 
 export {
