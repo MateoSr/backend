@@ -227,37 +227,26 @@ export async function getEstadisticasHoyDueno(duenoId: number) {
   // Fin del día en AR = 23:59:59.999 AR = 02:59:59.999 UTC del día siguiente
   const finHoyUTC = new Date(Date.UTC(year, month - 1, day + 1, 2, 59, 59, 999));
 
-  // 1. Ejecutamos las consultas en paralelo
-  const [turnosHoy, canchasActivas] = await Promise.all([
-    // Consultar turnos de hoy con tipoCancha para saber el deporte
-    prisma.turno.findMany({
-      where: {
-        fechaInicio: { gte: inicioHoyUTC, lte: finHoyUTC },
-        estado: { notIn: ['Cancelado', 'Cancelada'] },
-        complejo: { duenoId, estado: { not: 'Inactivo' } },
-        cancha: { estado: { notIn: ['Inactivo', 'Inactiva'] } },
-      },
-      include: {
-        cancha: {
-          include: {
-            tipoCancha: true,
-            precios: {
-              orderBy: { fechaDesde: 'desc' },
-              take: 1,
-            },
+  // Consultar turnos de hoy con tipoCancha para saber el deporte
+  const turnosHoy = await prisma.turno.findMany({
+    where: {
+      fechaInicio: { gte: inicioHoyUTC, lte: finHoyUTC },
+      estado: { notIn: ['Cancelado', 'Cancelada'] },
+      complejo: { duenoId, estado: { not: 'Inactivo' } },
+      cancha: { estado: { notIn: ['Inactivo', 'Inactiva'] } },
+    },
+    include: {
+      cancha: {
+        include: {
+          tipoCancha: true,
+          precios: {
+            orderBy: { fechaDesde: 'desc' },
+            take: 1,
           },
         },
       },
-    }),
-
-    // Consultar cantidad de canchas activas en total
-    prisma.cancha.count({
-      where: {
-        complejo: { duenoId, estado: { not: 'Inactivo' } },
-        estado: { notIn: ['Inactivo', 'Inactiva'] },
-      },
-    }),
-  ]);
+    },
+  });
 
   // Calculo cantidad de turnos de hoy
   const cantidadTurnos = turnosHoy.length;

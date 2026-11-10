@@ -44,9 +44,9 @@ async function registrar(req: Request, res: Response) {
         const findPersona = await getPersonaFisicaDni(persona.dni)
         if(findPersona == null){
             // si no existe creo
-            const creacionPersona = await postPersonaFisica(persona)
+            await postPersonaFisica(persona)
         }
-        const response = await postUser(user)
+        await postUser(user)
       
         return res.status(201).json({message:"Usuario registrado con éxito"})
     }catch(error:any){

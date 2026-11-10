@@ -3,7 +3,6 @@ import { ZodError } from 'zod';
 import e, {type Request, type Response} from 'express'
 import { complejoSchema } from './complejos.schema.js'
 import cloudinary from '../config/cloudinary.js'
-import console from 'console';
 
 
 async function obtenerComplejos(req: Request, res: Response) {
