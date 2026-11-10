@@ -1,6 +1,7 @@
 import { getAllPersonasFisicas, getPersonaFisicaDni, postPersonaFisica, deletePersonaFisica, putPersonaFisica} from "./personaFisica.service.js"
 import { ZodError } from 'zod';
 import { type Request, type Response } from "express";
+import { personaFisicaSchema } from "./personaFisica.schema.js";
 
 async function obtenerPersonasFisicas(req: Request, res: Response) {
     try {
@@ -33,7 +34,7 @@ async function obtenerPersonaFisica(req: Request, res: Response) {
 
 async function crearPersonaFisica(req: Request, res: Response) {
     try {
-        const personaFisica = req.body
+        const personaFisica = personaFisicaSchema.parse(req.body)
         const resultado = await postPersonaFisica(personaFisica)
         
         return res.status(201).json({
@@ -54,7 +55,7 @@ async function crearPersonaFisica(req: Request, res: Response) {
 async function modificarPersonaFisica(req: Request, res: Response) {
     try {
         const  dni  = req.params.dni as string
-        const personaFisicaModificada = req.body
+        const personaFisicaModificada = personaFisicaSchema.partial().parse(req.body)
         const resultado = await putPersonaFisica(dni, personaFisicaModificada)
         
         if (!resultado) {

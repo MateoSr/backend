@@ -1,5 +1,5 @@
 import { prisma } from '../shared/prisma.js'
-import { canchaSchema } from './cancha.schema.js'
+import { type Cancha } from './cancha.schema.js'
 
 async function getCanchaNro(nro: number, id_complejo: number) {
     return await prisma.cancha.findFirst({
@@ -16,14 +16,12 @@ async function getCanchaNro(nro: number, id_complejo: number) {
     })
 }
 
-async function postCancha(canchaData: unknown, id_complejo: number) {
-    const datosValidados = canchaSchema.parse(canchaData);
-
+async function postCancha(canchaData: Cancha, id_complejo: number) {
     const nuevaCancha = await prisma.cancha.create({
         data: {
-            tipoCanchaId: datosValidados.tipoCanchaId,
+            tipoCanchaId: canchaData.tipoCanchaId,
             complejoId: id_complejo,
-            nro: datosValidados.nro
+            nro: canchaData.nro
         }
     });
     return nuevaCancha;
@@ -36,8 +34,7 @@ async function getAllCanchas(id_complejo: number) {
     });
 }
 
-async function putCancha(nro: number, id_complejo: number, canchaNueva: unknown) {
-    const datosValidados = canchaSchema.partial().parse(canchaNueva);
+async function putCancha(nro: number, id_complejo: number, canchaNueva: Partial<Cancha>) {
     try {
         const canchaActualizada = await prisma.cancha.update({
             where: {
@@ -47,8 +44,8 @@ async function putCancha(nro: number, id_complejo: number, canchaNueva: unknown)
                 }
             },
             data: {
-                tipoCanchaId: datosValidados.tipoCanchaId,
-                estado: datosValidados.estado
+                tipoCanchaId: canchaNueva.tipoCanchaId,
+                estado: canchaNueva.estado
             }
         });
         return canchaActualizada;

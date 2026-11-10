@@ -1,5 +1,6 @@
 import {getTurnoId,getAllTurnos,postTurno,postTurnoComoEncargado,putTurno,deleteTurno,getTurnoPorComplejo,cancelarTurnoServicio} from './turno.service.js'
 import {type Request,type Response} from 'express'
+import { turnoSchema } from './turno.schema.js'
 import { ZodError } from 'zod'; //modulo que permimte mostrar los errores de tipos de datos
 async function obtenerTurnos(req:Request,res:Response) {
     try{
@@ -45,7 +46,7 @@ async function obtenerTurnoPorComplejo(req:Request,res:Response) {
 
 async function crearTurno(req:Request,res:Response) {
     try{
-        const turno = req.body
+        const turno = turnoSchema.parse(req.body)
         const resultado = await postTurno(turno)
         return res.status(201).json({
             message: 'Turno creado correctamente',
@@ -70,7 +71,8 @@ async function crearTurnoComoEncargado(req:Request,res:Response) {
 
     try {
         const { cliente, turno } = req.body;
-        const resultado = await postTurnoComoEncargado(turno, cliente);
+        const turnoValidado = turnoSchema.parse(turno);
+        const resultado = await postTurnoComoEncargado(turnoValidado, cliente);
         return res.status(201).json({ message: 'Turno agendado correctamente', turno: resultado });
     } catch(error:any) {
         if (error instanceof ZodError) {
@@ -83,7 +85,7 @@ async function crearTurnoComoEncargado(req:Request,res:Response) {
 async function modificarTurno(req:Request,res:Response) {
     try{
         const {id} = req.params
-        const turnoModificado = req.body
+        const turnoModificado = turnoSchema.partial().parse(req.body)
         const resultado = await putTurno(Number(id),turnoModificado)
         if(!resultado){
             return res.status(404).json({message:"No se encontró el turno"})
@@ -94,6 +96,10 @@ async function modificarTurno(req:Request,res:Response) {
         })
         }catch(error:any)
         {
+        if (error instanceof ZodError) {
+        return res.status(400).json({
+            message: "Error de validación en los datos ingresados",})
+        }
         return res.status(400).json({error:error.message})
         }
 }

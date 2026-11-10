@@ -1,6 +1,7 @@
 import {getCanchaNro,getAllCanchas,postCancha,putCancha,deleteCancha} from './cancha.service.js'
 import { ZodError } from 'zod'; //modulo que permimte mostrar los errores de tipos de datos
 import {type Request, type Response} from 'express'
+import { canchaSchema } from './cancha.schema.js'
 
 async function obtenerCanchas(req: Request, res: Response) {
     try{
@@ -35,7 +36,7 @@ async function obtenerCancha(req: Request, res: Response) {
 async function crearCancha(req: Request, res: Response) {
     try{
         const {id_complejo} = req.params
-        const cancha = req.body
+        const cancha = canchaSchema.parse(req.body)
         const resultado = await postCancha(cancha, Number(id_complejo))
         return res.status(201).json({
             message: 'Cancha creada correctamente',
@@ -57,7 +58,7 @@ async function modificarCancha(req: Request, res: Response) {
     try{
         const {id_complejo} = req.params
         const {nro} = req.params
-        const canchaModificada = req.body
+        const canchaModificada = canchaSchema.partial().parse(req.body)
         const resultado = await putCancha(Number(nro), Number(id_complejo), canchaModificada)
         if(!resultado){
             return res.status(404).json({message:"No se encontró la cancha"})
@@ -68,6 +69,10 @@ async function modificarCancha(req: Request, res: Response) {
         })
         }catch(error:any)
         {
+        if (error instanceof ZodError) {
+        return res.status(400).json({
+            message: "Error de validación en los datos ingresados",})
+        }
         return res.status(400).json({error:error.message})
         }
 }

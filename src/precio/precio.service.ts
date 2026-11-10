@@ -1,4 +1,4 @@
-import { type Precio,precioSchema } from "./precio.schema.js";
+import { type Precio } from "./precio.schema.js";
 import { prisma } from "../shared/prisma.js";
 
 async function getPrecio(complejoId: number, canchaNro: number, fechaDesde: string | Date): Promise<Precio | null> {
@@ -24,18 +24,17 @@ async function getPrecio(complejoId: number, canchaNro: number, fechaDesde: stri
   };
 }
 async function postPrecio(precio: Precio): Promise<Precio> {
-  const datosValidados = precioSchema.parse(precio);
   const nuevoPrecio = await prisma.precio.create({
     data: {
-      complejoId: datosValidados.id_complejo,
-      canchaNro: datosValidados.nro_cancha,
+      complejoId: precio.id_complejo,
+      canchaNro: precio.nro_cancha,
       fechaDesde:
-        typeof datosValidados.fecha === "string"
-          ? new Date(datosValidados.fecha)
-          : datosValidados.fecha,
-      precioBase: datosValidados.precioBase,
-      precioAdicional: datosValidados.precioAdicional,
-      precioSena: datosValidados.precioSena,
+        typeof precio.fecha === "string"
+          ? new Date(precio.fecha)
+          : precio.fecha,
+      precioBase: precio.precioBase,
+      precioAdicional: precio.precioAdicional,
+      precioSena: precio.precioSena,
     },
   });
 

@@ -1,6 +1,7 @@
 import { getAllPersonasJuridicas, getPersonaJuridicaCuit, postPersonaJuridica, deletePersonaJuridica, putPersonaJuridica} from "./personaJuridica.service.js"
 import { ZodError } from 'zod';
 import { type Request, type Response } from "express";
+import { personaJuridicaSchema } from "./personaJuridica.schema.js";
 
 async function obtenerPersonasJuridicas(req: Request, res: Response) {
     try {
@@ -32,7 +33,7 @@ async function obtenerPersonaJuridica(req: Request, res: Response) {
 
 async function crearPersonaJuridica(req: Request, res: Response) {
     try {
-        const personaJuridica = req.body
+        const personaJuridica = personaJuridicaSchema.parse(req.body)
         const resultado = await postPersonaJuridica(personaJuridica)
         
         return res.status(201).json({
@@ -53,8 +54,8 @@ async function crearPersonaJuridica(req: Request, res: Response) {
 async function modificarPersonaJuridica(req: Request, res: Response) {
     try {
         const cuit = req.params.cuit as string;
-        const personaJuridicaModificada = req.body
-        
+        const personaJuridicaModificada = personaJuridicaSchema.partial().parse(req.body)
+
         const resultado = await putPersonaJuridica(cuit, personaJuridicaModificada)
         
         if (!resultado) {

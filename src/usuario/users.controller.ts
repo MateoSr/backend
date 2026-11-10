@@ -1,5 +1,7 @@
 import {getAllUsers,getClientes,getUserId,postUser,deleteUser,putUser} from "./users.service.js"
 import {getPersonaFisicaDni} from "../personaFisica/personaFisica.service.js";
+import { userSchema } from "./users.schema.js";
+import { personaFisicaSchema } from "../personaFisica/personaFisica.schema.js";
 import { ZodError } from 'zod'; //modulo que permimte mostrar los errores de tipos de datos
 import { type Request, type Response } from "express";
 
@@ -73,7 +75,7 @@ async function obtenerUserCompleto(req:Request,res:Response) {
 
 async function crearUser(req:Request,res:Response) {
     try{
-        const user = req.body
+        const user = userSchema.parse(req.body)
         const resultado = await postUser(user)
         if(!resultado){
 
@@ -108,6 +110,9 @@ async function modificarUser(req:Request,res:Response) {
         }
         
         const userModificado = req.body
+        if (userModificado.nombre !== undefined || userModificado.apellido !== undefined || userModificado.fechaNacimiento !== undefined) {
+            personaFisicaSchema.partial().parse(userModificado);
+        }
         const resultado = await putUser(Number(userId),userModificado)
         if(!resultado){
             return res.status(404).json({message:"No se encontró el usuario"})
@@ -118,6 +123,12 @@ async function modificarUser(req:Request,res:Response) {
         })
         }catch(error:any)
         {
+        if (error instanceof ZodError) {
+            console.log(error);
+        return res.status(400).json({
+            message: "Error de validación en los datos ingresados",
+            detalles: error.issues});
+        }
         return res.status(400).json({error:error.message})
         }
 }

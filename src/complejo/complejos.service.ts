@@ -1,4 +1,4 @@
-import { complejoSchema,type Complejo } from "./complejos.schema.js";
+import { type Complejo } from "./complejos.schema.js";
 import { prisma } from "../shared/prisma.js";
 
 
@@ -134,11 +134,9 @@ async function getComplejoDelDueno(duenoId: number) {
   });
 }
 async function postComplejo(complejo: Complejo): Promise<ComplejoSalida> {
-  const datosValidados = complejoSchema.parse(complejo);
-
   const nuevoComplejo = await prisma.complejo.create({
     data: {
-      ...datosValidados,
+      ...complejo,
       estado: "Activo"
     }
   });
@@ -151,14 +149,11 @@ async function getAllComplejos(): Promise<ComplejoSalida[]> {
 }
 
 async function putComplejo(id: number, complejoNuevo: Partial<Complejo>): Promise<ComplejoSalida | null> {
-  // 1. Validamos que los campos opcionales tengan tipos correctos
-  const datosValidados = complejoSchema.partial().parse(complejoNuevo);
-
   try {
-    // 2. Prisma actualiza directamente sin tener que buscar el índice
+    // Prisma actualiza directamente sin tener que buscar el índice
     const complejoActualizado = await prisma.complejo.update({
       where: { id },
-      data: datosValidados
+      data: complejoNuevo
     });
     return complejoActualizado;
   } catch (error) {
