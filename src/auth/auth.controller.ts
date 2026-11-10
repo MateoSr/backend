@@ -38,12 +38,6 @@ async function registrar(req: Request, res: Response) {
             fechaNacimiento:fechaNacimiento
         }
 
-        //verificamos si el email esta usado
-        // const busquedaPorEmail = await getUserEmail(user.email)
-        // if(busquedaPorEmail){
-        //     return res.status(400).json({message:"El email ya esta usado"})
-        // }
-
         //busco persona para ver si existe
         const findPersona = await getPersonaFisicaDni(persona.dni)
         if(findPersona == null){
@@ -69,7 +63,6 @@ async function olvidePassword(req:Request,res:Response) {
         if(!email){
             return res.status(400).json({message:"Email es requerido"})
         }
-        // console.log(email)
         const response = await getUserEmail(String(email))
         if(!response){
             return res.status(404).json({message: "Email no encontrado"})

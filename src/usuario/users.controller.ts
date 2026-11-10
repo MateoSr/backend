@@ -60,7 +60,6 @@ async function obtenerUserCompleto(req:Request,res:Response) {
             "nombre":personaFisica.nombre,
             "apellido":personaFisica.apellido,
             "email":user.email,
-            // "password":user.password,
             "telefono":user.telefono,
             fechaNacimiento: personaFisica.fechaNacimiento ? new Date(personaFisica.fechaNacimiento).toISOString().split('T')[0] : ""
         }
