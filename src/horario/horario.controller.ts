@@ -1,6 +1,7 @@
 import {getHorarios,getHorario,postHorario,putHorario,deleteHorario} from "./horario.service.js"
 import { ZodError } from 'zod'; //modulo que permimte mostrar los errores de tipos de datos
 import {type Request, type Response} from 'express'
+import { horarioSchema } from "./horario.schema.js"
 
 
 async function obtenerHorarios(req: Request, res: Response) {
@@ -34,8 +35,8 @@ async function obtenerHorario(req: Request, res: Response) {
 async function crearHorario(req: Request, res: Response) {
     try{
         const {id_complejo} = req.params
-        const horario = req.body
-        await postHorario(horario, Number(id_complejo))
+        const horario = horarioSchema.parse(req.body)
+        const resultado = await postHorario(horario, Number(id_complejo))
         return res.status(201).json({
             message: 'Horario creado correctamente',
             horario: horario
@@ -53,7 +54,7 @@ async function crearHorario(req: Request, res: Response) {
 async function modificarHorario(req: Request, res: Response) {
     try{
         const {id_complejo,num_dia} = req.params
-        const horarioNuevo = req.body
+        const horarioNuevo = horarioSchema.partial().parse(req.body)
         const resultado = await putHorario(Number(id_complejo), Number(num_dia), horarioNuevo)
         if(!resultado){
             return res.status(404).json({message:"No se encontró el horario"})

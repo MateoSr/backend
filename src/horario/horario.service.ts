@@ -1,5 +1,5 @@
 import { prisma } from '../shared/prisma.js'
-import { horarioSchema } from './horario.schema.js'
+import { type Horario } from './horario.schema.js'
 
 async function getHorarios(complejoId: number) {
     return await prisma.horario.findMany({
@@ -19,29 +19,27 @@ async function getHorario(complejoId: number, nroDia: number) {
     });
 }
 
-async function postHorario(horarioData: unknown, complejoId: number) {
-    const horarioValido = horarioSchema.parse(horarioData);
+async function postHorario(horarioData: Horario, complejoId: number) {
     const nuevoHorario = await prisma.horario.create({
         data: {
             complejoId: complejoId,
-            nroDia: horarioValido.nroDia,
-            horaApertura: horarioValido.horaApertura,
-            horaCierre: horarioValido.horaCierre
+            nroDia: horarioData.nroDia,
+            horaApertura: horarioData.horaApertura,
+            horaCierre: horarioData.horaCierre
         }
     });
 
     return nuevoHorario;
 }
 
-async function putHorario(complejoId: number, nroDia: number, horarioData: unknown) {
-    const horarioValido = horarioSchema.partial().parse(horarioData);
+async function putHorario(complejoId: number, nroDia: number, horarioData: Partial<Horario>) {
     try {
         const dataToUpdate: any = {};
-        if (horarioValido.horaApertura) {
-            dataToUpdate.horaApertura = horarioValido.horaApertura;
+        if (horarioData.horaApertura) {
+            dataToUpdate.horaApertura = horarioData.horaApertura;
         }
-        if (horarioValido.horaCierre) {
-            dataToUpdate.horaCierre = horarioValido.horaCierre;
+        if (horarioData.horaCierre) {
+            dataToUpdate.horaCierre = horarioData.horaCierre;
         }
         const horarioActualizado = await prisma.horario.update({
             where: {

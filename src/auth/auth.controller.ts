@@ -2,6 +2,8 @@ import {postUser,getUserEmail} from '../usuario/users.service.js'
 import {getPersonaFisicaDni,postPersonaFisica} from '../personaFisica/personaFisica.service.js'
 import { ZodError } from 'zod';
 import { type Request, type Response } from "express";
+import { userSchema } from '../usuario/users.schema.js';
+import { personaFisicaSchema } from '../personaFisica/personaFisica.schema.js';
 import {enviarEmailResetPassword, login, resetPassword} from './auth.service.js' 
 
 
@@ -23,20 +25,20 @@ async function registrar(req: Request, res: Response) {
     try{
         const {email,password,telefono,dni,nombre,apellido,fechaNacimiento} =req.body
       
-        const user = {
+        const user = userSchema.parse({
             personaFisicaDni:dni,
             email:email,
             password:password,
             telefono:telefono,
             tipoUsuarioId:3
-        }
-     
-        const persona ={
+        })
+
+        const persona = personaFisicaSchema.parse({
             dni:dni,
             nombre:nombre,
             apellido:apellido,
             fechaNacimiento:fechaNacimiento
-        }
+        })
 
         //busco persona para ver si existe
         const findPersona = await getPersonaFisicaDni(persona.dni)

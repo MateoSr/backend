@@ -11,27 +11,42 @@ const ESTADOS_FINALES_SET = new Set(ESTADOS_FINALES.map((e) => e.toLowerCase()))
 export async function liberarTurnosPendientesExpirados(): Promise<void> {
   const hace10Min = new Date(Date.now() - 10 * 60 * 1000);
 
+  // 1. Buscamos las órdenes vencidas que tienen un turno asociado
   const vencidos = await prisma.ordenPago.findMany({
     where: {
       estado: "pendiente",
       createdAt: { lt: hace10Min },
       turnoId: { not: null },
     },
-    include: { turno: true },
+    select: { id: true, turnoId: true },
   });
 
-  for (const orden of vencidos) {
-    try {
-      if (orden.turnoId) {
-        await prisma.turno.delete({ where: { id: orden.turnoId } }).catch(() => {});
+  if (vencidos.length === 0) return;
+
+  //Filtro los id de las ordenes que tiene que actualizar
+  const ordenIds = vencidos.map((o) => o.id);
+  // Filtra los id de los turnos que tiene que borrar
+  const turnoIds = vencidos.map((o) => o.turnoId).filter((id): id is number => id !== null);
+
+  try {
+    //Ejecuta todo los cambios en una transaccion y no con un for
+    await prisma.$transaction(async (tx) => {
+      if (turnoIds.length > 0) {
+        await tx.turno.deleteMany({
+          where: { id: { in: turnoIds } },
+        });
       }
-      await prisma.ordenPago.update({
-        where: { id: orden.id },
-        data: { estado: "expirada", motivoRechazo: "Expirado por falta de pago (10 minutos)" },
+
+      await tx.ordenPago.updateMany({
+        where: { id: { in: ordenIds } },
+        data: {
+          estado: "expirada",
+          motivoRechazo: "Expirado por falta de pago (10 minutos)",
+        },
       });
-    } catch (e) {
-      console.error("Error liberando turno pendiente vencido:", e);
-    }
+    });
+  } catch (e) {
+    console.error("Error liberando turnos pendientes vencidos en lote:", e);
   }
 }
 
@@ -44,52 +59,29 @@ export async function liberarTurnosPendientesExpirados(): Promise<void> {
 export async function actualizarEstadosTurnos(): Promise<void> {
   const ahora = new Date();
 
-  const turnos = await prisma.turno.findMany({
+  //Actualizar directamente a "Finalizado" los turnos cuya fechaFin ya pasó 
+  await prisma.turno.updateMany({
     where: {
       estado: { notIn: ESTADOS_FINALES_UPPER },
+      fechaFin: { lte: ahora }, 
     },
-    select: {
-      id: true,
-      fechaInicio: true,
-      fechaFin: true,
-      estado: true,
+    data: {
+      estado: "Finalizado",
     },
   });
 
-  const aEnCurso: number[] = [];
-  const aFinalizar: number[] = [];
-
-  for (const turno of turnos) {
-    // Guarda extra: no tocar turnos ya finales o cancelados (sin importar mayúsculas).
-    if (ESTADOS_FINALES_SET.has(turno.estado.toLowerCase())) {
-      continue;
-    }
-
-    const inicio = new Date(turno.fechaInicio);
-    const fin = new Date(turno.fechaFin);
-
-    if (ahora >= fin) {
-      aFinalizar.push(turno.id);
-    } else if (ahora >= inicio) {
-      aEnCurso.push(turno.id);
-    }
-  }
-
-  if (aEnCurso.length > 0) {
-    await prisma.turno.updateMany({
-      where: { id: { in: aEnCurso } },
-      data: { estado: "En curso" },
-    });
-  }
-
-  if (aFinalizar.length > 0) {
-    await prisma.turno.updateMany({
-      where: { id: { in: aFinalizar } },
-      data: { estado: "Finalizado" },
-    });
-  }
+  // Actualizar a "En curso" los turnos que ya empezaron 
+  await prisma.turno.updateMany({
+    where: {
+      estado: { notIn: ESTADOS_FINALES_UPPER },
+      fechaInicio: { lte: ahora }, // Ya empezó 
+      fechaFin: { gt: ahora },    // Todavía no terminó 
+    },
+    data: {
+      estado: "En curso",
+    },
+  });
 }
-
 /**
  * Arranca el job de actualización de estados. Ejecuta una vez al inicio y luego
  * cada `intervaloMs` milisegundos (por defecto 10 minutos).

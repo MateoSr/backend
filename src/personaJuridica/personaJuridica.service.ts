@@ -1,5 +1,5 @@
 import { type PersonaJuridica as PersonaJuridicaPrisma } from '@prisma/client';
-import { personaJuridicaSchema, type PersonaJuridica } from "./personaJuridica.schema.js";
+import { type PersonaJuridica } from "./personaJuridica.schema.js";
 import {prisma} from '../shared/prisma.js'; 
 
 async function getPersonaJuridicaCuit(cuit: string): Promise<PersonaJuridicaPrisma | null> {
@@ -9,10 +9,8 @@ async function getPersonaJuridicaCuit(cuit: string): Promise<PersonaJuridicaPris
 }
 
 async function postPersonaJuridica(personaJuridica: PersonaJuridica): Promise<PersonaJuridicaPrisma> {
-    const datosValidados = personaJuridicaSchema.parse(personaJuridica);
-
     const nuevaPersonaJuridica = await prisma.personaJuridica.create({
-        data: datosValidados
+        data: personaJuridica
     });
 
     return nuevaPersonaJuridica;
@@ -23,12 +21,10 @@ async function getAllPersonasJuridicas(): Promise<PersonaJuridicaPrisma[]> {
 }
 
 async function putPersonaJuridica(cuit: string, personaJuridicaNueva: Partial<PersonaJuridica>): Promise<PersonaJuridicaPrisma | null> {
-    const datosValidados = personaJuridicaSchema.partial().parse(personaJuridicaNueva);
-
     try {
         const personaJuridicaModificada = await prisma.personaJuridica.update({
             where: { cuit },
-            data: datosValidados
+            data: personaJuridicaNueva
         });
         
         return personaJuridicaModificada;

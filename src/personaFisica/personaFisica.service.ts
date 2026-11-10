@@ -1,5 +1,5 @@
 import { type PersonaFisica as PersonaFisicaPrisma } from '@prisma/client';
-import { personaFisicaSchema, type PersonaFisica } from "./personaFisica.schema.js";
+import { type PersonaFisica } from "./personaFisica.schema.js";
 import {prisma} from '../shared/prisma.js'; 
 
 async function getPersonaFisicaDni(dni: string): Promise<PersonaFisicaPrisma | null> {
@@ -9,12 +9,10 @@ async function getPersonaFisicaDni(dni: string): Promise<PersonaFisicaPrisma | n
 }
 
 async function postPersonaFisica(personaFisica: PersonaFisica): Promise<PersonaFisicaPrisma> {
-    
-    const datosValidados = personaFisicaSchema.parse(personaFisica);
     const nuevaPersona = await prisma.personaFisica.create({
     data: {
-    ...datosValidados,
-    fechaNacimiento: new Date(datosValidados.fechaNacimiento), // Garantiza que sea un objeto Date
+    ...personaFisica,
+    fechaNacimiento: new Date(personaFisica.fechaNacimiento), // Garantiza que sea un objeto Date
   },
 });
     return nuevaPersona;
@@ -25,12 +23,10 @@ async function getAllPersonasFisicas(): Promise<PersonaFisicaPrisma[]> {
 }
 
 async function putPersonaFisica(dni: string, personaFisicaNueva: Partial<PersonaFisica>): Promise<PersonaFisicaPrisma | null> {
-    const datosValidados = personaFisicaSchema.partial().parse(personaFisicaNueva);
-
     try {
         const personaModificada = await prisma.personaFisica.update({
             where: { dni },
-            data: datosValidados
+            data: personaFisicaNueva
         });
         
         return personaModificada;

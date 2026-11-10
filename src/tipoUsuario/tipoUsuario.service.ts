@@ -5,6 +5,7 @@ export interface TipoUsuario {
   descripcion: string;
 }
 
+
 async function getTiposUsuario(): Promise<TipoUsuario[]> {
   return await prisma.tipoUsuario.findMany()
 };

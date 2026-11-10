@@ -1,4 +1,4 @@
-import { turnoSchema, type Turno } from "./turno.schema.js";
+import { type Turno } from "./turno.schema.js";
 import { prisma } from "../shared/prisma.js";
 import { enviarEmailComprobanteReserva } from "../email/email.service.js";
 
@@ -47,28 +47,27 @@ async function verificarComplejoActivo(complejoId: number): Promise<void> {
 }
 
 async function postTurno(turno: Turno): Promise<TurnoSalida> {
-  const datosValidados = turnoSchema.parse(turno);
-  await verificarComplejoActivo(datosValidados.complejoId);
+  await verificarComplejoActivo(turno.complejoId);
   const ahora = new Date();
-  if (datosValidados.fechaInicio < ahora) {
+  if (turno.fechaInicio < ahora) {
     throw new Error("No se pueden crear turnos para fechas u horarios pasados.");
   }
-  const turnoExistente = await verificarTurnoExistente(datosValidados.complejoId, datosValidados.canchaNro, datosValidados.fechaInicio, datosValidados.fechaFin);
+  const turnoExistente = await verificarTurnoExistente(turno.complejoId, turno.canchaNro, turno.fechaInicio, turno.fechaFin);
   if (turnoExistente) {
     throw new Error("Ya existe un turno en la misma cancha y horario.");
   }
   const nuevoTurno = await prisma.turno.create({
     data: {
-      clienteId: datosValidados.clienteId,
-      tipoTurnoId: datosValidados.tipoTurnoId,
-      complejoId: datosValidados.complejoId,
-      canchaNro: datosValidados.canchaNro,
-      fechaInicio: datosValidados.fechaInicio,
-      fechaFin: datosValidados.fechaFin,
-      estado: datosValidados.estado,
-      motivoCancelacion: datosValidados.motivoCancelacion ?? null,
-      nombreSolicitante: datosValidados.nombreSolicitante ?? null,
-      apellidoSolicitante: datosValidados.apellidoSolicitante ?? null,
+      clienteId: turno.clienteId,
+      tipoTurnoId: turno.tipoTurnoId,
+      complejoId: turno.complejoId,
+      canchaNro: turno.canchaNro,
+      fechaInicio: turno.fechaInicio,
+      fechaFin: turno.fechaFin,
+      estado: turno.estado,
+      motivoCancelacion: turno.motivoCancelacion ?? null,
+      nombreSolicitante: turno.nombreSolicitante ?? null,
+      apellidoSolicitante: turno.apellidoSolicitante ?? null,
     },
   });
 
@@ -106,22 +105,21 @@ async function postTurno(turno: Turno): Promise<TurnoSalida> {
 // No se crea (ni actualiza) ningún Usuario: el turno queda guardado con
 // clienteId en null y los datos del solicitante en nombreSolicitante/apellidoSolicitante.
 async function postTurnoComoEncargado(turno: Turno, cliente: { nombre: string; apellido: string; telefono?: string; email?: string }): Promise<TurnoSalida> {
-  const datosValidados = turnoSchema.parse(turno);
-  await verificarComplejoActivo(datosValidados.complejoId);
+  await verificarComplejoActivo(turno.complejoId);
   const ahora = new Date();
-  if (datosValidados.fechaInicio < ahora) {
+  if (turno.fechaInicio < ahora) {
     throw new Error("No se pueden crear turnos para fechas u horarios pasados.");
   }
   const nuevoTurno = await prisma.turno.create({
     data: {
       clienteId: undefined,
-      tipoTurnoId: datosValidados.tipoTurnoId,
-      complejoId: datosValidados.complejoId,
-      canchaNro: datosValidados.canchaNro,
-      fechaInicio: datosValidados.fechaInicio,
-      fechaFin: datosValidados.fechaFin,
-      estado: datosValidados.estado,
-      motivoCancelacion: datosValidados.motivoCancelacion ?? null,
+      tipoTurnoId: turno.tipoTurnoId,
+      complejoId: turno.complejoId,
+      canchaNro: turno.canchaNro,
+      fechaInicio: turno.fechaInicio,
+      fechaFin: turno.fechaFin,
+      estado: turno.estado,
+      motivoCancelacion: turno.motivoCancelacion ?? null,
       nombreSolicitante: cliente.nombre,
       apellidoSolicitante: cliente.apellido,
     },
@@ -172,25 +170,23 @@ async function getAllTurnos(filtros: FiltrosTurno = {}): Promise<TurnoSalida[]> 
 }
 
 async function putTurno(id: number, turnoNuevo: Partial<Turno>): Promise<TurnoSalida | null> {
-  const datosValidados = turnoSchema.partial().parse(turnoNuevo);
-
   // Mapeamos los datos validados a las columnas de la BD
   const updateData: Record<string, any> = {};
 
-  if (datosValidados.clienteId) updateData.clienteId = datosValidados.clienteId;
-  if (datosValidados.tipoTurnoId) updateData.tipoTurnoId = datosValidados.tipoTurnoId;
-  if (datosValidados.complejoId) updateData.complejoId = datosValidados.complejoId;
-  if (datosValidados.canchaNro) updateData.canchaNro = datosValidados.canchaNro;
-  if (datosValidados.estado) updateData.estado = datosValidados.estado;
-  if (datosValidados.motivoCancelacion !== undefined) updateData.motivoCancelacion = datosValidados.motivoCancelacion;
-  if (datosValidados.fechaInicio) {
+  if (turnoNuevo.clienteId) updateData.clienteId = turnoNuevo.clienteId;
+  if (turnoNuevo.tipoTurnoId) updateData.tipoTurnoId = turnoNuevo.tipoTurnoId;
+  if (turnoNuevo.complejoId) updateData.complejoId = turnoNuevo.complejoId;
+  if (turnoNuevo.canchaNro) updateData.canchaNro = turnoNuevo.canchaNro;
+  if (turnoNuevo.estado) updateData.estado = turnoNuevo.estado;
+  if (turnoNuevo.motivoCancelacion !== undefined) updateData.motivoCancelacion = turnoNuevo.motivoCancelacion;
+  if (turnoNuevo.fechaInicio) {
     const ahora = new Date();
-    if (datosValidados.fechaInicio < ahora) {
+    if (turnoNuevo.fechaInicio < ahora) {
       throw new Error("No se puede modificar el turno a una fecha u horario pasado.");
     }
-    updateData.fechaInicio = datosValidados.fechaInicio;
+    updateData.fechaInicio = turnoNuevo.fechaInicio;
   }
-  if (datosValidados.fechaFin) updateData.fechaFin = datosValidados.fechaFin;
+  if (turnoNuevo.fechaFin) updateData.fechaFin = turnoNuevo.fechaFin;
 
   try {
     const turnoActualizado = await prisma.turno.update({

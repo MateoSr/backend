@@ -1,5 +1,5 @@
 import { prisma } from "../shared/prisma.js";
-import { type User,type UserUpdate ,userSchema } from "./users.schema.js";
+import { type User, type UserUpdate } from "./users.schema.js";
 import bcrypt from "bcryptjs";
 import {putPersonaFisica} from "../personaFisica/personaFisica.service.js";
 
@@ -7,7 +7,6 @@ export interface UserSalida extends User {
   id: number;
 
 }
-
 
 
 async function getUserId(id: number) {
@@ -39,19 +38,16 @@ async function postUser(user: User) {
     throw new Error("El email ya se encuentra registrado");
   }
 
-  // Validamos con Zod
-  const datosValidados = userSchema.parse(user);
-  
-  const contraSegura = await bcrypt.hash(datosValidados.password, 10);
+  const contraSegura = await bcrypt.hash(user.password, 10);
   // Mapeamos las propiedades al modelo de Prisma (usuario)
   const nuevoUsuario = await prisma.usuario.create({
     data: {
-      email: datosValidados.email,
-      telefono: datosValidados.telefono ?? null,
+      email: user.email,
+      telefono: user.telefono ?? null,
       password: contraSegura,
-      tipoUsuarioId: (datosValidados as any).tipoUsuarioId ?? (datosValidados as any).tipoUsuarioId,
-      personaFisicaDni: (datosValidados as any).personaFisicaDni ?? null,
-      personaJuridicaCuit: (datosValidados as any).personaJuridicaCuit ?? null
+      tipoUsuarioId: user.tipoUsuarioId,
+      personaFisicaDni: user.personaFisicaDni ?? null,
+      personaJuridicaCuit: user.personaJuridicaCuit ?? null
     },
   });
 

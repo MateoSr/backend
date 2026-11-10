@@ -4,7 +4,7 @@ export interface RequestAutenticado extends Request {
   usuario?: {
     id: number;
     email: string;
-    rol: string; // 👈 Ej: "Administrador", "Dueño", "Cliente"
+    rol: string; 
   };
 }
 

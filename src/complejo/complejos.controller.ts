@@ -1,6 +1,7 @@
 import {getComplejoId,getComplejoDelEncargado,getAllComplejos,postComplejo,putComplejo,deleteComplejo,bajaComplejo,buscarComplejosDisponibles, getComplejoDelDueno, getDisponibilidadComplejo} from './complejos.service.js'
 import { ZodError } from 'zod';
-import {type Request, type Response} from 'express'
+import e, {type Request, type Response} from 'express'
+import { complejoSchema } from './complejos.schema.js'
 import cloudinary from '../config/cloudinary.js'
 
 
@@ -91,7 +92,7 @@ async function obtenerComplejoDelDueno(req: Request, res: Response) {
 
 async function crearComplejo(req: Request, res: Response) {
     try{
-        const complejo = { ...req.body }
+        const complejo = complejoSchema.parse(req.body)
 
         if (complejo.imagenBase64) {
             const base64Data = complejo.imagenBase64 as string;
@@ -145,7 +146,7 @@ async function crearComplejo(req: Request, res: Response) {
 async function modificarComplejo(req: Request, res: Response) {
     try{
         const {id} = req.params
-        const complejoModificado = req.body
+        const complejoModificado = complejoSchema.partial().parse(req.body)
         const resultado = await putComplejo(Number(id),complejoModificado)
         if(!resultado){
             return res.status(404).json({message:"No se encontró el complejo"})
@@ -156,6 +157,10 @@ async function modificarComplejo(req: Request, res: Response) {
         })
         }catch(error:any)
         {
+        if (error instanceof ZodError) {
+        return res.status(400).json({
+            message: "Error de validación en los datos ingresados",})
+        }
         return res.status(400).json({error:error.message})
         }
 }
