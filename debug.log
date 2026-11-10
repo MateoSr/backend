@@ -1,0 +1,7 @@
+◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+Server is running on port 3000
+http://localhost:3000
+[0mGET /api/complejos/1 [32m200[0m 82.132 ms - 2690[0m
+[0mGET /api/complejos/1/canchas/3 [32m200[0m 53.342 ms - 262[0m
+[0mGET /api/complejos/busqueda? [32m200[0m 53.095 ms - 390[0m
+[0mGET /api/complejos/busqueda? [32m200[0m 8.766 ms - 390[0m
