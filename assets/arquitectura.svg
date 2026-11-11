@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-label="Arquitectura de Turno Libre">
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#0F172A" flood-opacity="0.12"/>
+    </filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#94A3B8"/>
+    </marker>
+  </defs>
+
+  <rect width="1200" height="720" rx="24" fill="#F8FAFC"/>
+  <rect x="1" y="1" width="1198" height="718" rx="23" fill="none" stroke="#E2E8F0"/>
+
+  <text x="48" y="52" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing="2" fill="#64748B">ARQUITECTURA</text>
+  <text x="48" y="76" font-family="Segoe UI, Arial, sans-serif" font-size="15" fill="#334155">Cómo viaja una reserva de punta a punta</text>
+
+  <rect x="250" y="96" width="300" height="64" rx="12" fill="#334155" filter="url(#shadow)"/>
+  <text x="400" y="124" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="700" fill="#FFFFFF">Frontend / Cliente</text>
+  <text x="400" y="144" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#CBD5E1">Búsqueda, reserva y pago</text>
+
+  <line x1="400" y1="160" x2="400" y2="192" stroke="#94A3B8" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <rect x="150" y="196" width="500" height="76" rx="12" fill="#EE5801" filter="url(#shadow)"/>
+  <text x="400" y="228" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#FFFFFF">Express 5 + TypeScript</text>
+  <text x="400" y="250" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#FFE4D6">API REST /api/*</text>
+
+  <g fill="none" stroke="#94A3B8" stroke-width="2">
+    <line x1="400" y1="272" x2="400" y2="300"/>
+    <line x1="182.5" y1="300" x2="617.5" y2="300"/>
+    <line x1="182.5" y1="300" x2="182.5" y2="320" marker-end="url(#arrow)"/>
+    <line x1="327.5" y1="300" x2="327.5" y2="320" marker-end="url(#arrow)"/>
+    <line x1="472.5" y1="300" x2="472.5" y2="320" marker-end="url(#arrow)"/>
+    <line x1="617.5" y1="300" x2="617.5" y2="320" marker-end="url(#arrow)"/>
+  </g>
+
+  <rect x="120" y="324" width="125" height="84" rx="12" fill="#2563EB" filter="url(#shadow)"/>
+  <text x="182.5" y="356" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" fill="#FFFFFF">Auth</text>
+  <text x="182.5" y="378" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#DBEAFE">JWT y roles</text>
+
+  <rect x="265" y="324" width="125" height="84" rx="12" fill="#10B981" filter="url(#shadow)"/>
+  <text x="327.5" y="356" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" fill="#FFFFFF">Turnos</text>
+  <text x="327.5" y="378" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#D1FAE5">Reservas y estados</text>
+
+  <rect x="410" y="324" width="125" height="84" rx="12" fill="#F59E0B" filter="url(#shadow)"/>
+  <text x="472.5" y="356" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" fill="#FFFFFF">Pagos</text>
+  <text x="472.5" y="378" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#FEF3C7">Checkout y webhook</text>
+
+  <rect x="555" y="324" width="125" height="84" rx="12" fill="#7C3AED" filter="url(#shadow)"/>
+  <text x="617.5" y="356" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" fill="#FFFFFF">Complejos</text>
+  <text x="617.5" y="378" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#EDE9FE">Canchas y horarios</text>
+
+  <g fill="none" stroke="#94A3B8" stroke-width="2">
+    <line x1="182.5" y1="408" x2="182.5" y2="436"/>
+    <line x1="327.5" y1="408" x2="327.5" y2="436"/>
+    <line x1="472.5" y1="408" x2="472.5" y2="436"/>
+    <line x1="617.5" y1="408" x2="617.5" y2="436"/>
+    <line x1="182.5" y1="436" x2="617.5" y2="436"/>
+    <line x1="400" y1="436" x2="400" y2="462" marker-end="url(#arrow)"/>
+  </g>
+
+  <rect x="150" y="466" width="500" height="64" rx="12" fill="#4F46E5" filter="url(#shadow)"/>
+  <text x="400" y="494" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="700" fill="#FFFFFF">Prisma 7</text>
+  <text x="400" y="514" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#E0E7FF">Cliente ORM + migraciones</text>
+
+  <line x1="400" y1="530" x2="400" y2="562" stroke="#94A3B8" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <rect x="250" y="566" width="300" height="64" rx="12" fill="#2563EB" filter="url(#shadow)"/>
+  <text x="400" y="594" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="700" fill="#FFFFFF">PostgreSQL</text>
+  <text x="400" y="614" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#DBEAFE">Datos y relaciones</text>
+
+  <text x="840" y="96" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="700" letter-spacing="1.5" fill="#64748B">SERVICIOS EXTERNOS</text>
+
+  <g fill="none" stroke="#94A3B8" stroke-width="2" stroke-dasharray="6 5">
+    <line x1="650" y1="234" x2="740" y2="234"/>
+    <line x1="740" y1="152" x2="740" y2="404"/>
+    <line x1="740" y1="152" x2="836" y2="152" marker-end="url(#arrow)"/>
+    <line x1="740" y1="236" x2="836" y2="236" marker-end="url(#arrow)"/>
+    <line x1="740" y1="320" x2="836" y2="320" marker-end="url(#arrow)"/>
+    <line x1="740" y1="404" x2="836" y2="404" marker-end="url(#arrow)"/>
+  </g>
+
+  <rect x="840" y="120" width="300" height="64" rx="12" fill="#F59E0B" filter="url(#shadow)"/>
+  <text x="990" y="148" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" fill="#FFFFFF">Mercado Pago</text>
+  <text x="990" y="168" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#FEF3C7">Checkout y reembolsos</text>
+
+  <rect x="840" y="204" width="300" height="64" rx="12" fill="#10B981" filter="url(#shadow)"/>
+  <text x="990" y="232" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" fill="#FFFFFF">Brevo</text>
+  <text x="990" y="252" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#D1FAE5">Emails transaccionales</text>
+
+  <rect x="840" y="288" width="300" height="64" rx="12" fill="#0EA5E9" filter="url(#shadow)"/>
+  <text x="990" y="316" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" fill="#FFFFFF">Cloudinary</text>
+  <text x="990" y="336" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#E0F2FE">Imágenes de complejos</text>
+
+  <rect x="840" y="372" width="300" height="64" rx="12" fill="#0F172A" filter="url(#shadow)"/>
+  <text x="990" y="400" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" fill="#FFFFFF">Scheduler</text>
+  <text x="990" y="420" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#CBD5E1">Estados y liberación</text>
+
+  <line x1="48" y1="680" x2="88" y2="680" stroke="#94A3B8" stroke-width="2"/>
+  <text x="96" y="684" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#64748B">Flujo principal</text>
+  <line x1="248" y1="680" x2="288" y2="680" stroke="#94A3B8" stroke-width="2" stroke-dasharray="6 5"/>
+  <text x="296" y="684" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#64748B">Integraciones</text>
+</svg>
