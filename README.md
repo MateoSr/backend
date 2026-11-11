@@ -333,6 +333,16 @@ También carga 4 tipos de usuario, 10 tipos de cancha, 3 tipos de turno, 24 prov
 - Las imágenes se validan por tipo y tamaño antes de subirse a Cloudinary.
 - El archivo de configuración local está fuera del repositorio.
 
+  ---
+
+## 🔗 Enlaces
+
+- [Repositorio frontend](https://github.com/MateoSr/frontend)
+- [Repositorio backend](https://github.com/MateoSr/backend)
+- [Pull Request del frontend](https://github.com/MateoSr/backend/pull/1)
+
+---
+
 <p align="center">
   <img src="./assets/divider.svg" alt="" width="100%" />
 </p>
