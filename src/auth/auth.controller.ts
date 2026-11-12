@@ -4,7 +4,7 @@ import { ZodError } from 'zod';
 import { type Request, type Response } from "express";
 import { userSchema } from '../usuario/users.schema.js';
 import { personaFisicaSchema } from '../personaFisica/personaFisica.schema.js';
-import {enviarEmailResetPassword, login, resetPassword} from './auth.service.js' 
+import {enviarEmailResetPassword, login, refrescarToken, resetPassword} from './auth.service.js' 
 
 
 async function iniciarSesion(req: Request, res: Response) {
@@ -18,6 +18,21 @@ async function iniciarSesion(req: Request, res: Response) {
         })
     }catch(error:any){
         res.status(400).json({error:error.message})
+    }
+}
+
+async function refrescarSesion(req: Request, res: Response) {
+    try {
+        const { refreshToken } = req.body;
+        const tokens = await refrescarToken(String(refreshToken ?? ''));
+
+        return res.json({
+            message: "Sesión renovada",
+            token: tokens
+        })
+    }catch(error:any){
+        // Refresh ausente, vencido (inactividad) o inválido.
+        return res.status(401).json({error:error.message})
     }
 }
 
@@ -103,4 +118,4 @@ async function resetearPassword(req: Request, res: Response) {
   }
 }
  
-export  {iniciarSesion, registrar, olvidePassword,resetearPassword}
+export  {iniciarSesion, refrescarSesion, registrar, olvidePassword,resetearPassword}
