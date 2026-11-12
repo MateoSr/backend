@@ -1,0 +1,314 @@
+import { type Turno } from "./turno.schema.js";
+import { prisma } from "../shared/prisma.js";
+import { enviarEmailComprobanteReserva } from "../email/email.service.js";
+
+export interface TurnoSalida extends Turno {
+    id: number;
+    
+}
+
+export interface FiltrosTurno {
+  clienteId?: number;
+}
+
+async function getTurnoId(id:number): Promise<TurnoSalida | null> {    const turno = await prisma.turno.findUnique({
+        where:{id}
+    })
+    return turno || null
+}
+
+async function getTurnoPorComplejo(complejoId:number): Promise<TurnoSalida[] | null>{
+  const turnos = await prisma.turno.findMany({
+    where: {complejoId}
+  })
+  return turnos 
+  
+}
+async function verificarTurnoExistente(complejoId: number, canchaNro: number, fechaInicio: Date, fechaFin: Date): Promise<boolean> {
+  const turnoExistente = await prisma.turno.findFirst({
+    where: {
+      complejoId,
+      canchaNro,
+      fechaInicio,
+      fechaFin
+    }
+  });
+  return !!turnoExistente;
+}
+
+async function verificarComplejoActivo(complejoId: number): Promise<void> {
+  const complejo = await prisma.complejo.findUnique({
+    where: { id: complejoId },
+    select: { estado: true },
+  });
+  if (!complejo || complejo.estado === "Inactivo") {
+    throw new Error("El complejo no está disponible.");
+  }
+}
+
+async function postTurno(turno: Turno): Promise<TurnoSalida> {
+  await verificarComplejoActivo(turno.complejoId);
+  const ahora = new Date();
+  if (turno.fechaInicio < ahora) {
+    throw new Error("No se pueden crear turnos para fechas u horarios pasados.");
+  }
+  const turnoExistente = await verificarTurnoExistente(turno.complejoId, turno.canchaNro, turno.fechaInicio, turno.fechaFin);
+  if (turnoExistente) {
+    throw new Error("Ya existe un turno en la misma cancha y horario.");
+  }
+  const nuevoTurno = await prisma.turno.create({
+    data: {
+      clienteId: turno.clienteId,
+      tipoTurnoId: turno.tipoTurnoId,
+      complejoId: turno.complejoId,
+      canchaNro: turno.canchaNro,
+      fechaInicio: turno.fechaInicio,
+      fechaFin: turno.fechaFin,
+      estado: turno.estado,
+      motivoCancelacion: turno.motivoCancelacion ?? null,
+      nombreSolicitante: turno.nombreSolicitante ?? null,
+      apellidoSolicitante: turno.apellidoSolicitante ?? null,
+    },
+  });
+
+  try {
+    const turnoCompleto = await prisma.turno.findUnique({
+      where: { id: nuevoTurno.id },
+      include: {
+        cliente: {
+          include: {
+            personaFisica: true,
+            personaJuridica: true,
+          },
+        },
+        complejo: true,
+        cancha: {
+          include: {
+            tipoCancha: true,
+          },
+        },
+      },
+    });
+
+    if (turnoCompleto) {
+      void enviarEmailComprobanteReserva(turnoCompleto).catch((err) => {
+        console.error("Error enviando comprobante de reserva:", err);
+      });
+    }
+  } catch (err) {
+    console.error("Error al obtener datos para enviar comprobante:", err);
+  }
+  return nuevoTurno;
+}
+
+// El encargado agenda un turno para un solicitante que puede no tener cuenta.
+// No se crea (ni actualiza) ningún Usuario: el turno queda guardado con
+// clienteId en null y los datos del solicitante en nombreSolicitante/apellidoSolicitante.
+async function postTurnoComoEncargado(turno: Turno, cliente: { nombre: string; apellido: string; telefono?: string; email?: string }): Promise<TurnoSalida> {
+  await verificarComplejoActivo(turno.complejoId);
+  const ahora = new Date();
+  if (turno.fechaInicio < ahora) {
+    throw new Error("No se pueden crear turnos para fechas u horarios pasados.");
+  }
+  const nuevoTurno = await prisma.turno.create({
+    data: {
+      clienteId: undefined,
+      tipoTurnoId: turno.tipoTurnoId,
+      complejoId: turno.complejoId,
+      canchaNro: turno.canchaNro,
+      fechaInicio: turno.fechaInicio,
+      fechaFin: turno.fechaFin,
+      estado: turno.estado,
+      motivoCancelacion: turno.motivoCancelacion ?? null,
+      nombreSolicitante: cliente.nombre,
+      apellidoSolicitante: cliente.apellido,
+    },
+  });
+
+  return nuevoTurno;
+}
+
+async function getAllTurnos(filtros: FiltrosTurno = {}): Promise<TurnoSalida[]> {
+  const { clienteId } = filtros;
+
+  const turnos = await prisma.turno.findMany({
+    where: clienteId && !isNaN(clienteId) ? { clienteId } : {},
+    orderBy: [{ fechaInicio: 'asc' }],
+    select: {
+      id: true,
+      fechaInicio: true,
+      fechaFin: true,
+      estado: true,
+      clienteId: true,
+      tipoTurnoId: true,
+      complejoId: true,
+      canchaNro: true,
+      nombreSolicitante: true,
+      apellidoSolicitante: true,
+
+      complejo: {
+        select: {
+          nombre: true,
+        },
+      },
+
+      cancha: {
+        select: {
+          nro: true,
+
+          tipoCancha: {
+            select: {
+              deporte: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  return turnos;
+}
+
+async function putTurno(id: number, turnoNuevo: Partial<Turno>): Promise<TurnoSalida | null> {
+  // Mapeamos los datos validados a las columnas de la BD
+  const updateData: Record<string, any> = {};
+
+  if (turnoNuevo.clienteId) updateData.clienteId = turnoNuevo.clienteId;
+  if (turnoNuevo.tipoTurnoId) updateData.tipoTurnoId = turnoNuevo.tipoTurnoId;
+  if (turnoNuevo.complejoId) updateData.complejoId = turnoNuevo.complejoId;
+  if (turnoNuevo.canchaNro) updateData.canchaNro = turnoNuevo.canchaNro;
+  if (turnoNuevo.estado) updateData.estado = turnoNuevo.estado;
+  if (turnoNuevo.motivoCancelacion !== undefined) updateData.motivoCancelacion = turnoNuevo.motivoCancelacion;
+  if (turnoNuevo.fechaInicio) {
+    const ahora = new Date();
+    if (turnoNuevo.fechaInicio < ahora) {
+      throw new Error("No se puede modificar el turno a una fecha u horario pasado.");
+    }
+    updateData.fechaInicio = turnoNuevo.fechaInicio;
+  }
+  if (turnoNuevo.fechaFin) updateData.fechaFin = turnoNuevo.fechaFin;
+
+  try {
+    const turnoActualizado = await prisma.turno.update({
+      where: { id },
+      data: updateData,
+    });
+
+    return turnoActualizado;
+  } catch (error) {
+    return null;
+  }
+}
+
+async function deleteTurno(id:number): Promise<boolean> {
+    try{
+        await prisma.turno.delete({
+        where:{id}
+    })
+    return true;
+    }catch(error){
+        return false
+    }
+}
+
+export async function getEstadisticasHoyDueno(duenoId: number) {
+  const ahora = new Date();
+  // Convertir "hoy" en Argentina (UTC-3) a rango UTC
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Argentina/Buenos_Aires',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+  const hoyAR = formatter.format(ahora);
+  const [year, month, day] = hoyAR.split('-').map(Number);
+  // Inicio del día en AR = 00:00 AR = 03:00 UTC del mismo día
+  const inicioHoyUTC = new Date(Date.UTC(year, month - 1, day, 3, 0, 0, 0));
+  // Fin del día en AR = 23:59:59.999 AR = 02:59:59.999 UTC del día siguiente
+  const finHoyUTC = new Date(Date.UTC(year, month - 1, day + 1, 2, 59, 59, 999));
+
+  // Consultar turnos de hoy con tipoCancha para saber el deporte
+  const turnosHoy = await prisma.turno.findMany({
+    where: {
+      fechaInicio: { gte: inicioHoyUTC, lte: finHoyUTC },
+      estado: { notIn: ['Cancelado', 'Cancelada'] },
+      complejo: { duenoId, estado: { not: 'Inactivo' } },
+      cancha: { estado: { notIn: ['Inactivo', 'Inactiva'] } },
+    },
+    include: {
+      cancha: {
+        include: {
+          tipoCancha: true,
+          precios: {
+            orderBy: { fechaDesde: 'desc' },
+            take: 1,
+          },
+        },
+      },
+    },
+  });
+
+  // Calculo cantidad de turnos de hoy
+  const cantidadTurnos = turnosHoy.length;
+
+  //Calculo de ingresos hoy
+  const ingresosEstimados = turnosHoy.reduce((total, turno) => {
+    const ultimoPrecio = turno.cancha?.precios[0];
+    const precioTurno = ultimoPrecio ? ultimoPrecio.precioBase.toNumber() : 0;
+    return total + precioTurno;
+  }, 0);
+  // Cálculo del deporte estrella
+  const conteoDeportes: Record<string, number> = {};
+  turnosHoy.forEach((turno) => {
+    const deporte = turno.cancha?.tipoCancha?.deporte || 'Sin especificar';
+    conteoDeportes[deporte] = (conteoDeportes[deporte] || 0) + 1;
+  });
+
+  let deporteEstrella = 'Sin reservas';
+  let maxReservas = 0;
+
+  Object.entries(conteoDeportes).forEach(([deporte, cantidad]) => {
+    if (cantidad > maxReservas) {
+      maxReservas = cantidad;
+      deporteEstrella = deporte;
+    }
+  });
+
+  return {
+    cantidadTurnos,
+    ingresosEstimados,
+    deporteEstrella: {
+      nombre: deporteEstrella,
+      reservas: maxReservas,
+    },
+  };
+}
+async function cancelarTurnoServicio(turnoId: number) {
+  // 1. Buscamos el turno en la base de datos
+  const turno = await getTurnoId(turnoId);
+
+  if (!turno) {
+    throw new Error('El turno no fue encontrado.');
+  }
+  if (turno.estado.toLowerCase() !== 'reservado') {
+    throw new Error('Solo se pueden cancelar turnos que se encuentren en estado reservado.');
+  }
+  const turnoActualizado = await prisma.turno.update({
+    where: { id: turnoId },
+    data: { estado: 'Cancelado' },
+  });
+
+  return turnoActualizado;
+}
+
+
+export {
+    getTurnoId,
+    getTurnoPorComplejo,
+    postTurno,
+    postTurnoComoEncargado,
+    getAllTurnos,
+    putTurno,
+    deleteTurno,
+    cancelarTurnoServicio
+}

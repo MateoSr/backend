@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="240" viewBox="0 0 1200 240" role="img" aria-label="Turno Libre">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0F172A"/>
+      <stop offset="0.55" stop-color="#111C34"/>
+      <stop offset="1" stop-color="#1E293B"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#EE5801"/>
+      <stop offset="0.5" stop-color="#F59E0B"/>
+      <stop offset="1" stop-color="#10B981"/>
+    </linearGradient>
+    <radialGradient id="glowOrange" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#EE5801" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#EE5801" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowMint" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#10B981" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#10B981" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1200" height="240" fill="url(#bg)"/>
+  <circle cx="1040" cy="30" r="230" fill="url(#glowOrange)"/>
+  <circle cx="130" cy="240" r="210" fill="url(#glowMint)"/>
+
+  <g fill="none" stroke="#FFFFFF" stroke-opacity="0.08" stroke-width="2">
+    <rect x="40" y="30" width="1120" height="180" rx="18"/>
+    <line x1="600" y1="30" x2="600" y2="210"/>
+    <circle cx="600" cy="120" r="54"/>
+    <circle cx="600" cy="120" r="6" fill="#FFFFFF" fill-opacity="0.12" stroke="none"/>
+    <rect x="40" y="70" width="90" height="100"/>
+    <rect x="1070" y="70" width="90" height="100"/>
+    <path d="M130 90 A 40 40 0 0 1 130 150"/>
+    <path d="M1070 90 A 40 40 0 0 0 1070 150"/>
+  </g>
+
+  <rect x="40" y="218" width="1120" height="6" rx="3" fill="url(#accent)"/>
+
+  <circle cx="200" cy="70" r="4" fill="#EE5801"/>
+  <circle cx="980" cy="180" r="5" fill="#10B981"/>
+  <circle cx="880" cy="60" r="3" fill="#F59E0B"/>
+  <circle cx="330" cy="190" r="3" fill="#2563EB"/>
+</svg>

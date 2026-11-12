@@ -1,0 +1,121 @@
+import {postUser,getUserEmail} from '../usuario/users.service.js'
+import {getPersonaFisicaDni,postPersonaFisica} from '../personaFisica/personaFisica.service.js'
+import { ZodError } from 'zod';
+import { type Request, type Response } from "express";
+import { userSchema } from '../usuario/users.schema.js';
+import { personaFisicaSchema } from '../personaFisica/personaFisica.schema.js';
+import {enviarEmailResetPassword, login, refrescarToken, resetPassword} from './auth.service.js' 
+
+
+async function iniciarSesion(req: Request, res: Response) {
+    try {
+        const { email, password } = req.body;
+        const token = await login(String(email), String(password));
+      
+        return res.json({
+            message:"Login exitoso",
+            token: token
+        })
+    }catch(error:any){
+        res.status(400).json({error:error.message})
+    }
+}
+
+async function refrescarSesion(req: Request, res: Response) {
+    try {
+        const { refreshToken } = req.body;
+        const tokens = await refrescarToken(String(refreshToken ?? ''));
+
+        return res.json({
+            message: "Sesión renovada",
+            token: tokens
+        })
+    }catch(error:any){
+        // Refresh ausente, vencido (inactividad) o inválido.
+        return res.status(401).json({error:error.message})
+    }
+}
+
+async function registrar(req: Request, res: Response) {
+    try{
+        const {email,password,telefono,dni,nombre,apellido,fechaNacimiento} =req.body
+      
+        const user = userSchema.parse({
+            personaFisicaDni:dni,
+            email:email,
+            password:password,
+            telefono:telefono,
+            tipoUsuarioId:3
+        })
+
+        const persona = personaFisicaSchema.parse({
+            dni:dni,
+            nombre:nombre,
+            apellido:apellido,
+            fechaNacimiento:fechaNacimiento
+        })
+
+        //busco persona para ver si existe
+        const findPersona = await getPersonaFisicaDni(persona.dni)
+        if(findPersona == null){
+            // si no existe creo
+            await postPersonaFisica(persona)
+        }
+        await postUser(user)
+      
+        return res.status(201).json({message:"Usuario registrado con éxito"})
+    }catch(error:any){
+        if (error instanceof ZodError) {
+        return res.status(400).json({
+            message: "Error de validación en los datos ingresados",})
+        }
+        return res.status(400).json({error:error.message})
+    }
+    
+}
+
+async function olvidePassword(req:Request,res:Response) {
+    try{
+        const {email} = req.body
+        if(!email){
+            return res.status(400).json({message:"Email es requerido"})
+        }
+        const response = await getUserEmail(String(email))
+        if(!response){
+            return res.status(404).json({message: "Email no encontrado"})
+        }
+
+        await enviarEmailResetPassword(email,response.id)
+        return res.status(200).json({ message: "Se ha enviado un correo con las instrucciones para restablecer tu contraseña" })
+
+
+    }catch(error:any){
+        return res.status(500).json({error:error.message})
+    } 
+}
+
+async function resetearPassword(req: Request, res: Response) {
+  try {
+    const { token, password } = req.body;
+
+    if (!token || !password) {
+      return res.status(400).json({ message: "El token y la nueva contraseña son requeridos." });
+    }
+
+    if (password.trim().length < 8) {
+      return res.status(400).json({ message: "La contraseña es muy corta." });
+    }
+
+    const respuesta = await resetPassword(String(token), String(password));
+
+    if (!respuesta) {
+      return res.status(400).json({ message: "El enlace es inválido o ha expirado." });
+    }
+
+    return res.status(200).json({ message: "Contraseña actualizada correctamente." });
+  } catch (error: any) {
+    return res.status(500).json({ message: "Error al actualizar la contraseña." });
+  }
+}
+ 
+export  {iniciarSesion, refrescarSesion, registrar, olvidePassword,resetearPassword}
