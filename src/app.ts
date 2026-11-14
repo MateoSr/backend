@@ -1,4 +1,5 @@
-import express from "express";
+import express, { type Application } from 'express';
+import { swaggerDocs } from './config/swagger.js';
 import userRouter from './usuario/users.route.js'
 import complejoRouter from  './complejo/complejos.routes.js'
 import provinciaRouter from './provincia/provincia.routes.js'
@@ -15,11 +16,13 @@ import menuRouter from "./menues/menu.routes.js"
 import pagoRouter from "./pago/pago.routes.js"
 import cors, { type CorsOptions } from 'cors';
 import morgan from "morgan";
+import { errorHandler, noEncontrado } from './middleware/errorHandler.js';
 
 
 const app = express();
 
 const allowedOrigins = [
+  process.env.BACKEND_PUBLIC_URL,
   process.env.FRONTEND_PUBLIC_URL,
   'http://localhost:5173',
   'http://localhost:3000',
@@ -64,8 +67,14 @@ app.use("/api/contacto",contactoRouter)
 app.use("/api/menues",menuRouter)
 app.use("/api/pagos",pagoRouter)
 
+swaggerDocs(app);
+
 app.get("/", (req, res) => {
   res.send("Hello, World!");
 })
+
+// 404 JSON para rutas inexistentes y formateo central de errores.
+app.use(noEncontrado);
+app.use(errorHandler);
 
 export default app;

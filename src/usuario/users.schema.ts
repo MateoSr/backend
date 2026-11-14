@@ -22,5 +22,28 @@ export const userUpdateSchema = z.object({
   fechaNacimiento: z.string().optional() // Debe convertirse a Date antes de guardar en DB
 });
 
+// Respuesta publica de usuario: el parse() elimina password y cualquier
+// campo extra que venga de Prisma (los objetos Zod descartan claves desconocidas).
+export const userResponseSchema = z
+  .object({
+    id: z.number().int(),
+    email: z.string().email(),
+    telefono: z.string(),
+    tipoUsuarioId: z.number().int(),
+    personaFisicaDni: z.string().nullable(),
+    personaJuridicaCuit: z.string().nullable(),
+    tipoUsuario: z
+      .object({
+        id: z.number().int(),
+        descripcion: z.string(),
+      })
+      .optional(),
+  })
+  .meta({
+    id: 'UserResponse',
+    description: 'Usuario sin datos sensibles (nunca incluye password).',
+  });
+
 export type User = z.infer<typeof userSchema>;
 export type UserUpdate = z.infer<typeof userUpdateSchema>;
+export type UserResponse = z.infer<typeof userResponseSchema>;

@@ -5,7 +5,7 @@ import { z } from 'zod';
 export const complejoSchema = z.object({
   nombre: z.string().min(1, "El nombre es un campo obligatorio"),
   direccion: z.string().min(1, "La dirección es un campo obligatorio"),
-  telefono: z.string().min(1, "El teléfono es un campo obligatorio").optional().nullable(),
+  telefono: z.string().min(1, "El teléfono es un campo obligatorio"),
   instagram: z.string().min(1, "El instagram es un campo obligatorio").optional().nullable(),
   imagenUrl: z.string().optional().nullable(),
   imagenBase64: z.string().optional(),

@@ -1,18 +1,19 @@
 import crypto from "crypto";
 import { prisma } from "../shared/prisma.js";
 import { enviarEmailComprobanteReserva } from "../email/email.service.js";
+import { errores } from "../shared/errors.js";
 
 const MP_API_BASE = "https://api.mercadopago.com";
 
 function getAccessToken() {
   const token = process.env.MP_ACCESS_TOKEN;
-  if (!token) throw new Error("Falta MP_ACCESS_TOKEN en .env");
+  if (!token) throw errores.configuracionFaltante("Falta MP_ACCESS_TOKEN en .env");
   return token;
 }
 
 function getWebhookSecret() {
   const secret = process.env.MP_WEBHOOK_SECRET;
-  if (!secret) throw new Error("Falta MP_WEBHOOK_SECRET en .env");
+  if (!secret) throw errores.configuracionFaltante("Falta MP_WEBHOOK_SECRET en .env");
   return secret;
 }
 
@@ -22,7 +23,7 @@ function getFrontendPublicUrl() {
 }
 
 function validarFirmaWebhook(xSignature: string | undefined, xRequestId: string | undefined, dataId: string | undefined) {
-  if (!xSignature || !xRequestId || !dataId) throw new Error("Headers de webhook incompletos");
+  if (!xSignature || !xRequestId || !dataId) throw errores.noAutorizado("Headers de webhook incompletos");
 
   const secret = getWebhookSecret();
   const parts = xSignature.split(",");
@@ -33,7 +34,7 @@ function validarFirmaWebhook(xSignature: string | undefined, xRequestId: string 
     if (key === "ts") ts = value;
     if (key === "v1") v1 = value;
   }
-  if (!ts || !v1) throw new Error("x-signature inválido");
+  if (!ts || !v1) throw errores.noAutorizado("x-signature inválido");
 
   const manifest = `id:${dataId.toLowerCase()};request-id:${xRequestId};ts:${ts};`;
   const hmac = crypto.createHmac("sha256", secret);
@@ -46,7 +47,7 @@ function validarFirmaWebhook(xSignature: string | undefined, xRequestId: string 
     expectedBuffer.length !== receivedBuffer.length ||
     !crypto.timingSafeEqual(expectedBuffer, receivedBuffer)
   ) {
-    throw new Error("Firma de webhook inválida");
+    throw errores.noAutorizado("Firma de webhook inválida");
   }
 }
 
@@ -90,21 +91,21 @@ async function obtenerPrecioSeniaVigente(complejoId: number, canchaNro: number, 
     },
     orderBy: { fechaDesde: "desc" },
   });
-  if (!precio) throw new Error("No hay precio configurado para esta cancha");
+  if (!precio) throw errores.conflicto("No hay precio configurado para esta cancha");
   return Number(precio.precioSena);
 }
 
 export async function crearOrdenPago(payload: any, clienteId: number) {
   const { complejoId, canchaNro, fecha, horaInicio, fechaInicio, duracion } = payload;
 
-  if (!complejoId || !canchaNro) throw new Error("Faltan datos para crear la orden");
-  if (!fechaInicio && (!fecha || !horaInicio)) throw new Error("Faltan datos para crear la orden");
+  if (!complejoId || !canchaNro) throw errores.solicitudInvalida("Faltan datos para crear la orden");
+  if (!fechaInicio && (!fecha || !horaInicio)) throw errores.solicitudInvalida("Faltan datos para crear la orden");
 
   const complejo = await prisma.complejo.findUnique({
     where: { id: Number(complejoId) },
     select: { estado: true },
   });
-  if (!complejo || complejo.estado === "Inactivo") throw new Error("El complejo no está disponible");
+  if (!complejo || complejo.estado === "Inactivo") throw errores.conflicto("El complejo no está disponible");
 
   const duracionMin = Number(duracion || 60);
 
@@ -113,16 +114,16 @@ export async function crearOrdenPago(payload: any, clienteId: number) {
   const inicio = fechaInicio
     ? new Date(fechaInicio)
     : new Date(`${fecha}T${horaInicio}:00-03:00`);
-  if (isNaN(inicio.getTime())) throw new Error("La fecha de inicio es inválida");
+  if (isNaN(inicio.getTime())) throw errores.solicitudInvalida("La fecha de inicio es inválida");
   
   const fin = new Date(inicio);
   fin.setMinutes(fin.getMinutes() + duracionMin);
 
   const ahora = new Date();
-  if (inicio < ahora) throw new Error("No se pueden crear turnos para fechas u horarios pasados");
+  if (inicio < ahora) throw errores.conflicto("No se pueden crear turnos para fechas u horarios pasados");
 
   const solapado = await haySolapamiento(Number(complejoId), Number(canchaNro), inicio, fin);
-  if (solapado) throw new Error("Ese horario ya está reservado");
+  if (solapado) throw errores.conflicto("Ese horario ya está reservado");
 
   const montoSenia = await obtenerPrecioSeniaVigente(Number(complejoId), Number(canchaNro), inicio);
   const externalReference = `ORDPAGO-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -200,7 +201,7 @@ export async function crearOrdenPago(payload: any, clienteId: number) {
     console.error("=== MP crear orden error STATUS ===", res.status);
     console.error("=== MP crear orden error BODY ===", err);
     await prisma.ordenPago.update({ where: { id: orden.id }, data: { estado: "cancelada", motivoRechazo: err.slice(0, 500) } });
-    throw new Error("Error al crear la orden en Mercado Pago");
+    throw errores.errorExterno("Error al crear la orden en Mercado Pago");
   }
 
   const mpOrder = await res.json();
@@ -210,7 +211,7 @@ export async function crearOrdenPago(payload: any, clienteId: number) {
   });
 
   const checkoutUrl = mpOrder.checkout_url || mpOrder.checkout?.redirect_url || mpOrder.init_point;
-  if (!checkoutUrl) throw new Error("No se obtuvo la URL de pago");
+  if (!checkoutUrl) throw errores.errorExterno("No se obtuvo la URL de pago");
 
   return { checkoutUrl, externalReference, ordenId: orden.id };
 }
@@ -254,14 +255,14 @@ export async function procesarWebhook(req: any) {
   const res = await fetch(`${MP_API_BASE}/v1/orders/${dataId}`, {
     headers: { Authorization: `Bearer ${getAccessToken()}` },
   });
-  if (!res.ok) throw new Error("No se pudo consultar la orden en Mercado Pago");
+  if (!res.ok) throw errores.errorExterno("No se pudo consultar la orden en Mercado Pago");
   const mpOrder = await res.json();
 
   const externalReference = mpOrder.external_reference;
-  if (!externalReference) throw new Error("Orden sin external_reference");
+  if (!externalReference) throw errores.errorExterno("Orden sin external_reference");
 
   const orden = await prisma.ordenPago.findUnique({ where: { externalReference } });
-  if (!orden) throw new Error("Orden no encontrada");
+  if (!orden) throw errores.noEncontrado("la orden");
   if (orden.estado !== "pendiente") return { status: orden.estado };
 
   const status = (mpOrder.status || "").toLowerCase();
@@ -344,8 +345,8 @@ export async function procesarWebhook(req: any) {
 
 export async function obtenerEstadoOrden(externalReference: string, clienteId: number) {
   const orden = await prisma.ordenPago.findUnique({ where: { externalReference } });
-  if (!orden) throw new Error("Orden no encontrada");
-  if (orden.clienteId !== clienteId) throw new Error("No autorizado");
+  if (!orden) throw errores.noEncontrado("la orden");
+  if (orden.clienteId !== clienteId) throw errores.prohibido("No autorizado");
   return {
     estado: orden.estado,
     monto: Number(orden.monto),

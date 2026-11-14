@@ -6,6 +6,7 @@ import {
   verificarRefreshToken,
   verificarTokenReset,
 } from '../shared/jwt.js';
+import { errores } from '../shared/errors.js';
 
 export { enviarEmailResetPassword } from '../email/email.service.js';
 
@@ -49,10 +50,10 @@ export async function resetPassword(token: string, password: string): Promise<bo
 
 export async function login(email: string, password: string): Promise<TokensSesion | null> {
   const user = await getUserEmail(email);
-  if (!user) throw new Error("Credenciales inválidas");
+  if (!user) throw errores.noAutorizado("Credenciales inválidas");
 
   const coincide = await bcrypt.compare(password, user.password);
-  if (!coincide) throw new Error("Credenciales inválidas");
+  if (!coincide) throw errores.noAutorizado("Credenciales inválidas");
 
   return emitirTokens(user);
 }
@@ -62,11 +63,11 @@ export async function login(email: string, password: string): Promise<TokensSesi
  * inactividad, jwt.verify lanza y el controller responde 401.
  */
 export async function refrescarToken(refreshToken: string): Promise<TokensSesion> {
-  if (!refreshToken) throw new Error("Refresh token requerido");
+  if (!refreshToken) throw errores.noAutorizado("Refresh token requerido");
 
   const decoded = verificarRefreshToken(refreshToken);
   const user = await getUserId(decoded.userId);
-  if (!user) throw new Error("Usuario no encontrado");
+  if (!user) throw errores.noAutorizado("Usuario no encontrado");
 
   return emitirTokens(user);
 }

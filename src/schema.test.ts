@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { userSchema } from './usuario/users.schema.js';
+import { userSchema, userResponseSchema } from './usuario/users.schema.js';
 
 // Test unitario 2: validación de datos de usuario con Zod.
 describe('users.schema', () => {
@@ -16,5 +16,30 @@ describe('users.schema', () => {
 
     const emailInvalido = { ...usuarioValido, email: 'no-es-un-email' };
     expect(userSchema.safeParse(emailInvalido).success).toBe(false);
+  });
+
+  it('userResponseSchema descarta el password y campos extra de Prisma', () => {
+    const usuarioDePrisma = {
+      id: 1,
+      email: 'cliente@turnolibre.com',
+      telefono: '1122334455',
+      password: '$2b$10$hash',
+      tipoUsuarioId: 3,
+      personaFisicaDni: '30123456',
+      personaJuridicaCuit: null,
+      tipoUsuario: { id: 3, descripcion: 'Cliente', usuarios: [] },
+    };
+
+    const respuesta = userResponseSchema.parse(usuarioDePrisma);
+
+    expect(respuesta).not.toHaveProperty('password');
+    expect(respuesta).toMatchObject({
+      id: 1,
+      email: 'cliente@turnolibre.com',
+      telefono: '1122334455',
+      tipoUsuarioId: 3,
+      personaFisicaDni: '30123456',
+      personaJuridicaCuit: null,
+    });
   });
 });

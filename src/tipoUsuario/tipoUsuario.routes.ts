@@ -4,6 +4,7 @@ import {obtenerTipoUsuario, obtenerTiposUsuario} from './tipoUsuario.controller.
 const tipoUsuarioRouter = Router();
 
 tipoUsuarioRouter.get('/', obtenerTiposUsuario);
+
 tipoUsuarioRouter.get('/:id', obtenerTipoUsuario);
 
 export default tipoUsuarioRouter;

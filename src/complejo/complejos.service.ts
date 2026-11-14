@@ -1,5 +1,6 @@
 import { type Complejo } from "./complejos.schema.js";
 import { prisma } from "../shared/prisma.js";
+import { errores } from "../shared/errors.js";
 
 
 export interface ComplejoSalida extends Complejo {
@@ -450,12 +451,12 @@ const ZONA_COMPLEJO_POR_DEFECTO = "America/Argentina/Buenos_Aires";
 
 async function getDisponibilidadComplejo(complejoId: number, fecha: string) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
-    throw new Error("Fecha inválida. Formato esperado YYYY-MM-DD");
+    throw errores.solicitudInvalida("Fecha inválida. Formato esperado YYYY-MM-DD");
   }
 
   const inicioDiaUTC = new Date(`${fecha}T00:00:00-03:00`);
   if (isNaN(inicioDiaUTC.getTime())) {
-    throw new Error("Fecha inválida.");
+    throw errores.solicitudInvalida("Fecha inválida.");
   }
   const finVentanaUTC = new Date(inicioDiaUTC.getTime() + 48 * 60 * 60 * 1000);
 
@@ -482,7 +483,7 @@ async function getDisponibilidadComplejo(complejoId: number, fecha: string) {
   });
 
   if (!complejo || complejo.estado === "Inactivo") {
-    throw new Error("El complejo no está disponible");
+    throw errores.conflicto("El complejo no está disponible");
   }
 
   const zona = ZONA_COMPLEJO_POR_DEFECTO;

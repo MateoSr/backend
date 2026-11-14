@@ -1,156 +1,95 @@
 import {getAllUsers,getClientes,getUserId,postUser,deleteUser,putUser} from "./users.service.js"
 import {getPersonaFisicaDni} from "../personaFisica/personaFisica.service.js";
-import { userSchema } from "./users.schema.js";
+import { userSchema, userResponseSchema } from "./users.schema.js";
 import { personaFisicaSchema } from "../personaFisica/personaFisica.schema.js";
-import { ZodError } from 'zod'; //modulo que permimte mostrar los errores de tipos de datos
 import { type Request, type Response } from "express";
+import { errores, asegurarEncontrado } from "../shared/errors.js";
 
 async function obtenerUsers(req:Request,res:Response) {
-    try{
-        const users = await getAllUsers()
-        return res.status(200).json(users)
-        }catch(error:any){
-        return res.status(400).json({error:error.message})
-    }
+    const users = await getAllUsers()
+    return res.status(200).json(userResponseSchema.array().parse(users))
 }
 
 async function obtenerClientes(req:Request,res:Response) {
     if (req.usuario?.rol !== "Encargado") {
-        return res.status(403).json({ message: "Solo un encargado puede consultar clientes" });
+        throw errores.prohibido("Solo un encargado puede consultar clientes")
     }
 
-    try {
-        return res.status(200).json(await getClientes())
-    } catch(error:any) {
-        return res.status(400).json({error:error.message})
-    }
+    return res.status(200).json(await getClientes())
 }
 
 async function obtenerUser(req:Request,res:Response) {
-    try{
-        const {id} = req.params
-        const user = await getUserId(Number(id))
-        if(!user){
-            return res.status(404).json({message:"No se encontró el usuario"})
-        }
-        return res.status(200).json(user)
-        }catch(error:any)
-        {
-        return res.status(400).json({error:error.message})
-        }
+    const {id} = req.params
+    const user = asegurarEncontrado(await getUserId(Number(id)), "el usuario")
+    return res.status(200).json(userResponseSchema.parse(user))
 }
 
 async function obtenerUserCompleto(req:Request,res:Response) {
-    try{
+    const userId = req.usuario?.userId;
+    if (!userId) {
+        throw errores.noAutorizado("Usuario no autenticado en la petición")
+    }
 
-        const userId = req.usuario?.userId; 
-        if (!userId) {
-            return res.status(401).json({ message: "Usuario no autenticado en la petición" });
-        }
+    const user = asegurarEncontrado(await getUserId(Number(userId)), "el usuario")
+    const personaFisica = asegurarEncontrado(
+        await getPersonaFisicaDni(user.personaFisicaDni!),
+        "la persona"
+    )
 
-        const user = await getUserId(Number(userId))
-        if(!user){
-            return res.status(404).json({message:"No se encontró el usuario"})
-        }
-        const personaFisica = await getPersonaFisicaDni(user.personaFisicaDni!)
-        if(!personaFisica){
-            return res.status(404).json({message:"No se encontró la persona"})
-        }
-
-        const respuesta = {
-            "id":user.id,
-            "nombre":personaFisica.nombre,
-            "apellido":personaFisica.apellido,
-            "email":user.email,
-            "telefono":user.telefono,
-            fechaNacimiento: personaFisica.fechaNacimiento ? new Date(personaFisica.fechaNacimiento).toISOString().split('T')[0] : ""
-        }
-        return res.status(200).json(respuesta)
-
-    }catch(error:any)
-        {
-        return res.status(400).json({error:error.message})
-        }
+    const respuesta = {
+        "id":user.id,
+        "nombre":personaFisica.nombre,
+        "apellido":personaFisica.apellido,
+        "email":user.email,
+        "telefono":user.telefono,
+        fechaNacimiento: personaFisica.fechaNacimiento ? new Date(personaFisica.fechaNacimiento).toISOString().split('T')[0] : ""
+    }
+    return res.status(200).json(respuesta)
 }
 
 async function crearUser(req:Request,res:Response) {
-    try{
-        const user = userSchema.parse(req.body)
-        const resultado = await postUser(user)
-        if(!resultado){
-
-            return res.status(401).json({
-                error: 'Error'
-            })
-        }
-        return res.status(201).json({
-            message: 'Usuario creado correctamente',
-            user: resultado
-        })
-
-        }catch(error:any)
-        {
-        if (error instanceof ZodError) {
-            console.log(error);
-        return res.status(400).json({
-            message: "Error de validación en los datos ingresados",
-            detalles: error.issues});
-        }
-        return res.status(400).json({error:error.message})
-        }
+    const user = userSchema.parse(req.body)
+    const resultado = await postUser(user)
+    if(!resultado){
+        throw errores.errorInterno("No se pudo crear el usuario")
+    }
+    return res.status(201).json({
+        message: 'Usuario creado correctamente',
+        user: userResponseSchema.parse(resultado)
+    })
 }
 
 async function modificarUser(req:Request,res:Response) {
-    try{
-        const userId = req.usuario?.userId; 
-        console.log("ID del usuario autenticado:", userId);
+    const userId = req.usuario?.userId;
 
-        if (!userId) {
-            return res.status(401).json({ message: "Usuario no autenticado en la petición" });
-        }
-        
-        const userModificado = req.body
-        if (userModificado.nombre !== undefined || userModificado.apellido !== undefined || userModificado.fechaNacimiento !== undefined) {
-            personaFisicaSchema.partial().parse(userModificado);
-        }
-        const resultado = await putUser(Number(userId),userModificado)
-        if(!resultado){
-            return res.status(404).json({message:"No se encontró el usuario"})
-        }
-        return res.status(200).json({
-            message: 'Usuario modificado correctamente',
-            user: userModificado
-        })
-        }catch(error:any)
-        {
-        if (error instanceof ZodError) {
-            console.log(error);
-        return res.status(400).json({
-            message: "Error de validación en los datos ingresados",
-            detalles: error.issues});
-        }
-        return res.status(400).json({error:error.message})
-        }
+    if (!userId) {
+        throw errores.noAutorizado("Usuario no autenticado en la petición")
+    }
+
+    const userModificado = req.body
+    if (userModificado.nombre !== undefined || userModificado.apellido !== undefined || userModificado.fechaNacimiento !== undefined) {
+        personaFisicaSchema.partial().parse(userModificado);
+    }
+    const resultado = await putUser(Number(userId),userModificado)
+    if(!resultado){
+        throw errores.noEncontrado("el usuario")
+    }
+    return res.status(200).json({
+        message: 'Usuario modificado correctamente',
+        user: userResponseSchema.parse(resultado)
+    })
 }
 
 async function borrarUser(req:Request,res:Response) {
-    try{
-        const {id} = req.params
-        const response = await deleteUser(Number(id))
-        if(!response){
-            return res.status(404).json({message:"No se encontró el usuario"})
-        }
-        return res.status(200).json({
-            message: 'Usuario eliminado correctamente',
-        })
-        }catch(error:any)
-        {
-        return res.status(400).json({error:error.message})
-        }
+    const {id} = req.params
+    const response = await deleteUser(Number(id))
+    if(!response){
+        throw errores.noEncontrado("el usuario")
+    }
+    return res.status(200).json({
+        message: 'Usuario eliminado correctamente',
+    })
 }
-
-
-
 
 export {
   obtenerUsers,

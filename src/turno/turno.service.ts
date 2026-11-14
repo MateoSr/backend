@@ -1,4 +1,5 @@
 import { type Turno } from "./turno.schema.js";
+import { errores } from "../shared/errors.js";
 import { prisma } from "../shared/prisma.js";
 import { enviarEmailComprobanteReserva } from "../email/email.service.js";
 
@@ -42,7 +43,7 @@ async function verificarComplejoActivo(complejoId: number): Promise<void> {
     select: { estado: true },
   });
   if (!complejo || complejo.estado === "Inactivo") {
-    throw new Error("El complejo no está disponible.");
+    throw errores.conflicto("El complejo no está disponible.");
   }
 }
 
@@ -50,11 +51,11 @@ async function postTurno(turno: Turno): Promise<TurnoSalida> {
   await verificarComplejoActivo(turno.complejoId);
   const ahora = new Date();
   if (turno.fechaInicio < ahora) {
-    throw new Error("No se pueden crear turnos para fechas u horarios pasados.");
+    throw errores.conflicto("No se pueden crear turnos para fechas u horarios pasados.");
   }
   const turnoExistente = await verificarTurnoExistente(turno.complejoId, turno.canchaNro, turno.fechaInicio, turno.fechaFin);
   if (turnoExistente) {
-    throw new Error("Ya existe un turno en la misma cancha y horario.");
+    throw errores.conflicto("Ya existe un turno en la misma cancha y horario.");
   }
   const nuevoTurno = await prisma.turno.create({
     data: {
@@ -108,7 +109,7 @@ async function postTurnoComoEncargado(turno: Turno, cliente: { nombre: string; a
   await verificarComplejoActivo(turno.complejoId);
   const ahora = new Date();
   if (turno.fechaInicio < ahora) {
-    throw new Error("No se pueden crear turnos para fechas u horarios pasados.");
+    throw errores.conflicto("No se pueden crear turnos para fechas u horarios pasados.");
   }
   const nuevoTurno = await prisma.turno.create({
     data: {
@@ -182,7 +183,7 @@ async function putTurno(id: number, turnoNuevo: Partial<Turno>): Promise<TurnoSa
   if (turnoNuevo.fechaInicio) {
     const ahora = new Date();
     if (turnoNuevo.fechaInicio < ahora) {
-      throw new Error("No se puede modificar el turno a una fecha u horario pasado.");
+      throw errores.conflicto("No se puede modificar el turno a una fecha u horario pasado.");
     }
     updateData.fechaInicio = turnoNuevo.fechaInicio;
   }
@@ -288,10 +289,10 @@ async function cancelarTurnoServicio(turnoId: number) {
   const turno = await getTurnoId(turnoId);
 
   if (!turno) {
-    throw new Error('El turno no fue encontrado.');
+    throw errores.noEncontrado('el turno');
   }
   if (turno.estado.toLowerCase() !== 'reservado') {
-    throw new Error('Solo se pueden cancelar turnos que se encuentren en estado reservado.');
+    throw errores.conflicto('Solo se pueden cancelar turnos que se encuentren en estado reservado.');
   }
   const turnoActualizado = await prisma.turno.update({
     where: { id: turnoId },

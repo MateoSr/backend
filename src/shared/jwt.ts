@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken'
+import { errores } from './errors.js';
 
 export interface TokenPayload {
   userId: number;
@@ -41,7 +42,7 @@ export function verificarToken(token: string): TokenPayload {
     tipo?: string;
   };
   // Un refresh token nunca debe servir como access token.
-  if (payload.tipo === 'refresh') throw new Error('Token inválido');
+  if (payload.tipo === 'refresh') throw errores.noAutorizado('Token inválido');
   return payload;
 }
 
@@ -49,7 +50,7 @@ export function verificarRefreshToken(token: string): RefreshTokenPayload {
   const payload = jwt.verify(token, process.env.SECRET_KEY_REFRESH!, {
     algorithms: ['HS256'],
   }) as RefreshTokenPayload;
-  if (payload.tipo !== 'refresh') throw new Error('Refresh token inválido');
+  if (payload.tipo !== 'refresh') throw errores.noAutorizado('Refresh token inválido');
   return payload;
 }
 

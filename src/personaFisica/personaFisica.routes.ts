@@ -6,10 +6,13 @@ import { autorizarPorNombre } from "../middleware/autorizar.js";
 const personaFisicaRouter = Router()
 
 personaFisicaRouter.get('/',autenticar,autorizarPorNombre("Administrador"),obtenerPersonasFisicas)
-personaFisicaRouter.get('/:dni',autenticar,autorizarPorNombre("Administrador"),obtenerPersonaFisica)
-personaFisicaRouter.post('/',autenticar,autorizarPorNombre("Administrador"),crearPersonaFisica)
-personaFisicaRouter.put('/:dni',autenticar,autorizarPorNombre("Administrador"),modificarPersonaFisica)
-personaFisicaRouter.delete('/:dni',autenticar,autorizarPorNombre("Administrador"),borrarPersonaFisica)
 
+personaFisicaRouter.get('/:dni',autenticar,autorizarPorNombre("Administrador"),obtenerPersonaFisica)
+
+personaFisicaRouter.post('/',autenticar,autorizarPorNombre("Administrador"),crearPersonaFisica)
+
+personaFisicaRouter.put('/:dni',autenticar,autorizarPorNombre("Administrador"),modificarPersonaFisica)
+
+personaFisicaRouter.delete('/:dni',autenticar,autorizarPorNombre("Administrador"),borrarPersonaFisica)
 
 export default personaFisicaRouter

@@ -1,44 +1,25 @@
 import { getLocalidadPorProvincia } from '../localidad/localidad.service.js'
 import {getProvincia,getProvincias} from './provincia.service.js'
 import {type Request,type Response} from 'express'
+import { asegurarEncontrado } from '../shared/errors.js'
 
 async function obtenerProvincias(req: Request, res: Response){
-    try {
-        const provincias = await getProvincias()
-        if(!provincias){
-            return res.status(404).json({message: "No se encontraron provincias"})
-        }
-        return res.status(200).json(provincias)
-    } catch (error:any) {
-        return res.status(500).json({message: error.message})
-    }
+    const provincias = await getProvincias()
+    return res.status(200).json(provincias)
 }
 
 async function obtenerProvincia(req: Request, res: Response){
-    try {
-        const {id} = req.params
-        const provincia = await getProvincia(Number(id))
-        if(!provincia){
-            return res.status(404).json({message: "No se encontró la provincia"})
-        }
-        return res.status(200).json(provincia)
-    } catch (error:any) {
-        return res.status(500).json({message: error.message})
-    }
+    const {id} = req.params
+    const provincia = asegurarEncontrado(await getProvincia(Number(id)), "la provincia")
+    return res.status(200).json(provincia)
 }
+
 async function obtenerLocalidadPorProvincia(req: Request, res: Response) {
-    try {
-        const {id} = req.params
-        const localidades = await getLocalidadPorProvincia(Number(id))
-        if(!localidades){
-            return res.status(404).json({message: "No se encontraron localidades para esa provincia"})
-        }
-        return res.status(200).json(localidades)
-    } catch (error:any) {
-        return res.status(500).json({message: error.message})
-    }
-    
+    const {id} = req.params
+    const localidades = await getLocalidadPorProvincia(Number(id))
+    return res.status(200).json(localidades)
 }
+
 export {
     obtenerProvincias,
     obtenerProvincia,

@@ -2,6 +2,7 @@ import { prisma } from "../shared/prisma.js";
 import { type User, type UserUpdate } from "./users.schema.js";
 import bcrypt from "bcryptjs";
 import {putPersonaFisica} from "../personaFisica/personaFisica.service.js";
+import { errores } from "../shared/errors.js";
 
 export interface UserSalida extends User {
   id: number;
@@ -35,7 +36,7 @@ async function postUser(user: User) {
   // Verificamos si el email ya existe en la DB
   const usuarioExistente = await getUserEmail(user.email);
   if (usuarioExistente) {
-    throw new Error("El email ya se encuentra registrado");
+    throw errores.conflicto("El email ya se encuentra registrado");
   }
 
   const contraSegura = await bcrypt.hash(user.password, 10);

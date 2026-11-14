@@ -1,29 +1,19 @@
 import { getTiposUsuario, getTipoUsuario } from "./tipoUsuario.service.js"
 import { type Request, type Response } from "express"
+import { asegurarEncontrado } from "../shared/errors.js"
 
 async function obtenerTiposUsuario(req: Request, res: Response) {
-    try {
-        const tiposUsuario = await getTiposUsuario()
-        if(!tiposUsuario){
-            return res.status(404).json({message: "No se encontraron tipos de usuario"})
-        }
-        return res.status(200).json(tiposUsuario)
-    } catch (error:any) {
-        return res.status(500).json({message: error.message})
-    }
+    const tiposUsuario = await getTiposUsuario()
+    return res.status(200).json(tiposUsuario)
 }
 
 async function obtenerTipoUsuario(req: Request, res: Response) {
-    try {
-        const {id} = req.params
-        const tipoUsuario = await getTipoUsuario(Number(id))
-        if(!tipoUsuario){
-            return res.status(404).json({message: "No se encontró el tipo de usuario"})
-        }
-        return res.status(200).json(tipoUsuario)
-    } catch (error:any) {
-        return res.status(500).json({message: error.message})
-    }
+    const {id} = req.params
+    const tipoUsuario = asegurarEncontrado(
+        await getTipoUsuario(Number(id)),
+        "el tipo de usuario"
+    )
+    return res.status(200).json(tipoUsuario)
 }
 
 export {
