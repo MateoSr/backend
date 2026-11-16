@@ -6,7 +6,7 @@ import {
 import swaggerUi from 'swagger-ui-express';
 import { registrarDocumentacion } from '../docs/index.js';
 
-const apiPublica = process.env.BACKEND_PUBLIC_URL?.replace(/\/$/, '');
+const apiPublica = process.env.BACKEND_PUBLIC_URL;
 
 // Registro central: cada dominio se registra desde src/docs/*.docs.ts.
 const registry = new OpenAPIRegistry();
