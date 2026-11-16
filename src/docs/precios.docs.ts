@@ -1,8 +1,5 @@
 import type { OpenAPIRegistry } from '@asteasolutions/zod-to-openapi';
-import { precioSchema } from '../precio/precio.schema.js';
-
-// Los ids vienen por path, no por body.
-const precioBody = precioSchema.omit({ id_complejo: true, nro_cancha: true });
+import { precioBodySchema } from '../precio/precio.schema.js';
 
 export function registrarPrecios(registry: OpenAPIRegistry): void {
   registry.registerPath({
@@ -115,7 +112,7 @@ export function registrarPrecios(registry: OpenAPIRegistry): void {
         "required": true,
         "content": {
           "application/json": {
-            "schema": precioBody
+            "schema": precioBodySchema
           }
         }
       }

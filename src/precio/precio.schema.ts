@@ -11,4 +11,13 @@ export const precioSchema = z.object({
   fecha: z.union([z.string().date(), z.date()]),
 }).strict();
 
+// Los ids vienen por path, no por body.
+export const precioBodySchema = precioSchema.omit({ id_complejo: true, nro_cancha: true }).strict();
+
+export const precioParamsSchema = z.object({
+  id_complejo: z.coerce.number().int("El id debe ser un número entero"),
+  nro_cancha: z.coerce.number().int("El id debe ser un número entero"),
+});
+
 export type Precio = z.infer<typeof precioSchema>;
+export type PrecioBody = z.infer<typeof precioBodySchema>;

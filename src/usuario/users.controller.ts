@@ -1,7 +1,6 @@
 import {getAllUsers,getClientes,getUserId,postUser,deleteUser,putUser} from "./users.service.js"
 import {getPersonaFisicaDni} from "../personaFisica/personaFisica.service.js";
-import { userSchema, userResponseSchema } from "./users.schema.js";
-import { personaFisicaSchema } from "../personaFisica/personaFisica.schema.js";
+import { userResponseSchema } from "./users.schema.js";
 import { type Request, type Response } from "express";
 import { errores, asegurarEncontrado } from "../shared/errors.js";
 
@@ -48,7 +47,7 @@ async function obtenerUserCompleto(req:Request,res:Response) {
 }
 
 async function crearUser(req:Request,res:Response) {
-    const user = userSchema.parse(req.body)
+    const user = req.body
     const resultado = await postUser(user)
     if(!resultado){
         throw errores.errorInterno("No se pudo crear el usuario")
@@ -67,9 +66,6 @@ async function modificarUser(req:Request,res:Response) {
     }
 
     const userModificado = req.body
-    if (userModificado.nombre !== undefined || userModificado.apellido !== undefined || userModificado.fechaNacimiento !== undefined) {
-        personaFisicaSchema.partial().parse(userModificado);
-    }
     const resultado = await putUser(Number(userId),userModificado)
     if(!resultado){
         throw errores.noEncontrado("el usuario")

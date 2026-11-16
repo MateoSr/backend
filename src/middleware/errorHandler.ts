@@ -57,8 +57,8 @@ export function errorHandler(
     message = err.message;
     detalles = err.detalles;
   } else if (err instanceof ZodError) {
-    // Validaciones que todavía viven en los controllers (Zod se migrará
-    // luego a un middleware de rutas). Mantiene el 400 con los issues.
+    // Errores de validación lanzados por el middleware de rutas (validar.ts).
+    // Mantiene el 400 con los issues.
     status = 400;
     code = 'DATOS_INVALIDOS';
     message = 'Error de validación en los datos ingresados';

@@ -1,6 +1,5 @@
 import {getHorarios,getHorario,postHorario,putHorario,deleteHorario} from "./horario.service.js"
 import {type Request, type Response} from 'express'
-import { horarioSchema } from "./horario.schema.js"
 import { errores, asegurarEncontrado } from "../shared/errors.js"
 
 
@@ -22,7 +21,7 @@ async function obtenerHorario(req: Request, res: Response) {
 
 async function crearHorario(req: Request, res: Response) {
     const {id_complejo} = req.params
-    const horario = horarioSchema.parse(req.body)
+    const horario = req.body
     await postHorario(horario, Number(id_complejo))
     return res.status(201).json({
         message: 'Horario creado correctamente',
@@ -32,7 +31,7 @@ async function crearHorario(req: Request, res: Response) {
 
 async function modificarHorario(req: Request, res: Response) {
     const {id_complejo,num_dia} = req.params
-    const horarioNuevo = horarioSchema.partial().parse(req.body)
+    const horarioNuevo = req.body
     const resultado = await putHorario(Number(id_complejo), Number(num_dia), horarioNuevo)
     if(!resultado){
         throw errores.noEncontrado("el horario")

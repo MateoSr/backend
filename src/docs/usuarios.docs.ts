@@ -1,17 +1,6 @@
 import type { OpenAPIRegistry } from '@asteasolutions/zod-to-openapi';
 import { z } from '../config/zod.js';
-import { userSchema, userResponseSchema } from '../usuario/users.schema.js';
-import { personaFisicaSchema } from '../personaFisica/personaFisica.schema.js';
-
-// Body mixto de PUT /api/users/perfil y PUT /api/users/{id}.
-// El DNI no se actualiza por este endpoint, por eso se excluye del partial.
-const perfilUpdateBody = personaFisicaSchema
-  .pick({ nombre: true, apellido: true, fechaNacimiento: true })
-  .partial()
-  .extend({
-    email: userSchema.shape.email.optional(),
-    telefono: userSchema.shape.telefono.optional(),
-  });
+import { userSchema, userResponseSchema, userUpdateBodySchema } from '../usuario/users.schema.js';
 
 export function registrarUsuarios(registry: OpenAPIRegistry): void {
   registry.registerPath({
@@ -82,7 +71,7 @@ export function registrarUsuarios(registry: OpenAPIRegistry): void {
         "required": true,
         "content": {
           "application/json": {
-            "schema": perfilUpdateBody
+            "schema": userUpdateBodySchema
           }
         }
       }
@@ -297,7 +286,7 @@ export function registrarUsuarios(registry: OpenAPIRegistry): void {
         "required": true,
         "content": {
           "application/json": {
-            "schema": perfilUpdateBody
+            "schema": userUpdateBodySchema
           }
         }
       }

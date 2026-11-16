@@ -1,6 +1,5 @@
 import {getPrecio,getAllPrecios,postPrecio} from './precio.service.js'
 import {type Request, type Response} from 'express'
-import { precioSchema } from './precio.schema.js'
 import { asegurarEncontrado } from '../shared/errors.js'
 
 async function obtenerPrecios(req: Request, res: Response) {
@@ -20,8 +19,7 @@ async function obtenerPrecio(req: Request, res: Response) {
 
 async function crearPrecio(req: Request, res: Response) {
     const {id_complejo,nro_cancha} =req.params
-    const precio = req.body
-    const precioPost = precioSchema.parse({id_complejo:Number(id_complejo),nro_cancha:Number(nro_cancha), ...precio})
+    const precioPost = {id_complejo:Number(id_complejo),nro_cancha:Number(nro_cancha), ...req.body}
     const resultado = await postPrecio(precioPost)
     return res.status(201).json({
         message: 'Precio creado correctamente',

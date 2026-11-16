@@ -1,6 +1,5 @@
 import {getCanchaNro,getAllCanchas,postCancha,putCancha,deleteCancha} from './cancha.service.js'
 import {type Request, type Response} from 'express'
-import { canchaSchema } from './cancha.schema.js'
 import { errores, asegurarEncontrado } from '../shared/errors.js'
 
 async function obtenerCanchas(req: Request, res: Response) {
@@ -21,7 +20,7 @@ async function obtenerCancha(req: Request, res: Response) {
 
 async function crearCancha(req: Request, res: Response) {
     const {id_complejo} = req.params
-    const cancha = canchaSchema.parse(req.body)
+    const cancha = req.body
     const resultado = await postCancha(cancha, Number(id_complejo))
     return res.status(201).json({
         message: 'Cancha creada correctamente',
@@ -32,7 +31,7 @@ async function crearCancha(req: Request, res: Response) {
 async function modificarCancha(req: Request, res: Response) {
     const {id_complejo} = req.params
     const {nro} = req.params
-    const canchaModificada = canchaSchema.partial().parse(req.body)
+    const canchaModificada = req.body
     const resultado = await putCancha(Number(nro), Number(id_complejo), canchaModificada)
     if(!resultado){
         throw errores.noEncontrado("la cancha")

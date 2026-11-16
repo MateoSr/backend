@@ -1,6 +1,5 @@
 import { getAllPersonasFisicas, getPersonaFisicaDni, postPersonaFisica, deletePersonaFisica, putPersonaFisica} from "./personaFisica.service.js"
 import { type Request, type Response } from "express";
-import { personaFisicaSchema } from "./personaFisica.schema.js";
 import { errores, asegurarEncontrado } from "../shared/errors.js";
 
 async function obtenerPersonasFisicas(req: Request, res: Response) {
@@ -15,7 +14,7 @@ async function obtenerPersonaFisica(req: Request, res: Response) {
 }
 
 async function crearPersonaFisica(req: Request, res: Response) {
-    const personaFisica = personaFisicaSchema.parse(req.body)
+    const personaFisica = req.body
     const resultado = await postPersonaFisica(personaFisica)
 
     return res.status(201).json({
@@ -26,7 +25,7 @@ async function crearPersonaFisica(req: Request, res: Response) {
 
 async function modificarPersonaFisica(req: Request, res: Response) {
     const dni = req.params.dni as string
-    const personaFisicaModificada = personaFisicaSchema.partial().parse(req.body)
+    const personaFisicaModificada = req.body
     const resultado = await putPersonaFisica(dni, personaFisicaModificada)
 
     if (!resultado) {

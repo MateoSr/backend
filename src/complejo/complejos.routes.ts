@@ -22,6 +22,12 @@ import {
   crearPrecio
 } from "../precio/precio.controller.js";
 import { crearOpinion } from "../opinion/opinion.controller.js";
+import { validarCuerpo, validarParams } from "../middleware/validar.js";
+import { complejoSchema } from "./complejos.schema.js";
+import { horarioSchema } from "../horario/horario.schema.js";
+import { canchaSchema } from "../cancha/cancha.schema.js";
+import { precioBodySchema, precioParamsSchema } from "../precio/precio.schema.js";
+import { opinionSchema } from "../opinion/opinion.schema.js";
 
 const complejoRouter = Router();
 
@@ -39,9 +45,9 @@ complejoRouter.get("/:id/disponibilidad", obtenerDisponibilidad)
 
 complejoRouter.get("/:id", obtenerComplejo);
 
-complejoRouter.post("/", autenticar, autorizarPorNombre("Administrador"), crearComplejo);
+complejoRouter.post("/", autenticar, autorizarPorNombre("Administrador"), validarCuerpo(complejoSchema), crearComplejo);
 
-complejoRouter.put("/:id", autenticar, autorizarPorNombre("Dueño"), modificarComplejo);
+complejoRouter.put("/:id", autenticar, autorizarPorNombre("Dueño"), validarCuerpo(complejoSchema.partial()), modificarComplejo);
 
 complejoRouter.patch("/:id/baja", autenticar, autorizarPorNombre("Administrador"), darDeBajaComplejo);
 
@@ -49,7 +55,7 @@ complejoRouter.delete("/:id", autenticar, autorizarPorNombre("Administrador"), b
 
 // Rutas para las opiniones de un complejo
 
-complejoRouter.post("/:id/opiniones", crearOpinion);
+complejoRouter.post("/:id/opiniones", validarCuerpo(opinionSchema), crearOpinion);
 
 // Rutas para obtener los horarios de un complejo
 // horario es débil de complejo
@@ -60,9 +66,9 @@ complejoRouter.get("/:id_complejo/horarios", obtenerHorarios);
 
 complejoRouter.get("/:id_complejo/horarios/:num_dia", obtenerHorario);
 
-complejoRouter.post("/:id_complejo/horarios", autenticar, autorizarPorNombre("Dueño"), crearHorario);
+complejoRouter.post("/:id_complejo/horarios", autenticar, autorizarPorNombre("Dueño"), validarCuerpo(horarioSchema), crearHorario);
 
-complejoRouter.put("/:id_complejo/horarios/:num_dia", autenticar, autorizarPorNombre("Dueño"), modificarHorario);
+complejoRouter.put("/:id_complejo/horarios/:num_dia", autenticar, autorizarPorNombre("Dueño"), validarCuerpo(horarioSchema.partial()), modificarHorario);
 
 complejoRouter.delete("/:id_complejo/horarios/:num_dia", autenticar, autorizarPorNombre("Dueño"), borrarHorario);
 
@@ -77,9 +83,9 @@ complejoRouter.get("/:id_complejo/canchas", obtenerCanchas);
 
 complejoRouter.get("/:id_complejo/canchas/:nro", obtenerCancha);
 
-complejoRouter.post("/:id_complejo/canchas", autenticar, autorizarPorNombre("Dueño"), crearCancha);
+complejoRouter.post("/:id_complejo/canchas", autenticar, autorizarPorNombre("Dueño"), validarCuerpo(canchaSchema), crearCancha);
 
-complejoRouter.put("/:id_complejo/canchas/:nro", autenticar, autorizarPorNombre("Dueño"), modificarCancha);
+complejoRouter.put("/:id_complejo/canchas/:nro", autenticar, autorizarPorNombre("Dueño"), validarCuerpo(canchaSchema.partial()), modificarCancha);
 
 complejoRouter.delete("/:id_complejo/canchas/:nro", autenticar, autorizarPorNombre("Dueño"), borrarCancha);
 
@@ -92,6 +98,6 @@ complejoRouter.get("/:id_complejo/canchas/:nro_cancha/precios", obtenerPrecios);
 
 complejoRouter.get("/:id_complejo/canchas/:nro_cancha/precios/:fechaDesde", obtenerPrecio);
 
-complejoRouter.post("/:id_complejo/canchas/:nro_cancha/precios", autenticar, autorizarPorNombre("Dueño"), crearPrecio);
+complejoRouter.post("/:id_complejo/canchas/:nro_cancha/precios", autenticar, autorizarPorNombre("Dueño"), validarParams(precioParamsSchema), validarCuerpo(precioBodySchema), crearPrecio);
 
 export default complejoRouter;

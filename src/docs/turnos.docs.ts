@@ -1,19 +1,6 @@
 import type { OpenAPIRegistry } from '@asteasolutions/zod-to-openapi';
 import { z } from '../config/zod.js';
-import { turnoSchema } from '../turno/turno.schema.js';
-
-// turnoSchema tiene un refine() que impide .partial(); se reconstruye desde el shape.
-const turnoUpdateBody = z.object(turnoSchema.shape).partial();
-
-const turnoEncargadoBody = z.object({
-  cliente: z.object({
-    nombre: z.string().min(1),
-    apellido: z.string().min(1),
-    telefono: z.string().optional(),
-    email: z.string().email().optional(),
-  }),
-  turno: turnoSchema,
-});
+import { turnoSchema, turnoUpdateBodySchema, turnoEncargadoSchema } from '../turno/turno.schema.js';
 
 export function registrarTurnos(registry: OpenAPIRegistry): void {
   registry.registerPath({
@@ -257,7 +244,7 @@ export function registrarTurnos(registry: OpenAPIRegistry): void {
         "required": true,
         "content": {
           "application/json": {
-            "schema": turnoUpdateBody
+            "schema": turnoUpdateBodySchema
           }
         }
       }
@@ -360,7 +347,7 @@ export function registrarTurnos(registry: OpenAPIRegistry): void {
         "required": true,
         "content": {
           "application/json": {
-            "schema": turnoEncargadoBody
+            "schema": turnoEncargadoSchema
           }
         }
       }

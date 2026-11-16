@@ -1,17 +1,7 @@
 import type { OpenAPIRegistry } from '@asteasolutions/zod-to-openapi';
 import { z } from '../config/zod.js';
-import { userSchema, userResponseSchema } from '../usuario/users.schema.js';
-import { personaFisicaSchema } from '../personaFisica/personaFisica.schema.js';
-
-// El controller arma este body a partir de userSchema + personaFisicaSchema.
-const registroBody = userSchema
-  .pick({ email: true, password: true, telefono: true })
-  .extend({
-    dni: personaFisicaSchema.shape.dni,
-    nombre: personaFisicaSchema.shape.nombre,
-    apellido: personaFisicaSchema.shape.apellido,
-    fechaNacimiento: personaFisicaSchema.shape.fechaNacimiento,
-  });
+import { userResponseSchema } from '../usuario/users.schema.js';
+import { registroSchema } from '../auth/auth.schema.js';
 
 export function registrarAuth(registry: OpenAPIRegistry): void {
   registry.registerPath({
@@ -129,7 +119,7 @@ export function registrarAuth(registry: OpenAPIRegistry): void {
         "required": true,
         "content": {
           "application/json": {
-            "schema": registroBody
+            "schema": registroSchema
           }
         }
       }

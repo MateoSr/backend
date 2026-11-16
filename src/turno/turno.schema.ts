@@ -21,4 +21,20 @@ export const turnoSchema = z
     path: ["fechaFin"],
   });
 
+// turnoSchema tiene un refine() que impide .partial(); se reconstruye desde el shape.
+export const turnoUpdateBodySchema = z.object(turnoSchema.shape).partial();
+
+// Body de POST /turnos/encargado: datos del cliente sin cuenta + turno.
+export const turnoEncargadoSchema = z.object({
+  cliente: z.object({
+    nombre: z.string().min(1, "El nombre es un campo obligatorio"),
+    apellido: z.string().min(1, "El apellido es un campo obligatorio"),
+    telefono: z.string().optional(),
+    email: z.string().email().optional(),
+  }),
+  turno: turnoSchema,
+});
+
 export type Turno = z.infer<typeof turnoSchema>;
+export type TurnoUpdateBody = z.infer<typeof turnoUpdateBodySchema>;
+export type TurnoEncargado = z.infer<typeof turnoEncargadoSchema>;

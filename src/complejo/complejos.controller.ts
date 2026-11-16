@@ -1,6 +1,5 @@
 import {getComplejoId,getComplejoDelEncargado,getAllComplejos,postComplejo,putComplejo,deleteComplejo,bajaComplejo,buscarComplejosDisponibles, getComplejoDelDueno, getDisponibilidadComplejo} from './complejos.service.js'
 import {type Request, type Response} from 'express'
-import { complejoSchema } from './complejos.schema.js'
 import cloudinary from '../config/cloudinary.js'
 import { errores, asegurarEncontrado } from '../shared/errors.js'
 
@@ -63,7 +62,7 @@ async function obtenerComplejoDelDueno(req: Request, res: Response) {
 }
 
 async function crearComplejo(req: Request, res: Response) {
-    const complejo = complejoSchema.parse(req.body)
+    const complejo = req.body
 
     if (complejo.imagenBase64) {
         const base64Data = complejo.imagenBase64 as string;
@@ -104,7 +103,7 @@ async function crearComplejo(req: Request, res: Response) {
 
 async function modificarComplejo(req: Request, res: Response) {
     const {id} = req.params
-    const complejoModificado = complejoSchema.partial().parse(req.body)
+    const complejoModificado = req.body
     const resultado = await putComplejo(Number(id),complejoModificado)
     if(!resultado){
         throw errores.noEncontrado("el complejo")

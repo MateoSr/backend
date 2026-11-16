@@ -2,11 +2,12 @@ import { prisma } from "../shared/prisma.js";
 
 const ESTADOS_FINALES = ["Cancelado", "Cancelada", "Finalizado", "Finalizada"];
 
-// Variantes en mayúsculas para el filtro de la query (datos legacy).
-const ESTADOS_FINALES_UPPER = ESTADOS_FINALES.map((e) => e.toUpperCase());
-
-// Set en minúsculas para comparar de forma insensible a mayúsculas en JS.
-const ESTADOS_FINALES_SET = new Set(ESTADOS_FINALES.map((e) => e.toLowerCase()));
+// PostgreSQL compara texto distinguiendo mayúsculas: hay que filtrar por los
+// valores canónicos y, además, por las variantes en mayúsculas (datos legacy).
+const ESTADOS_FINALES_FILTRO = [
+  ...ESTADOS_FINALES,
+  ...ESTADOS_FINALES.map((e) => e.toUpperCase()),
+];
 
 export async function liberarTurnosPendientesExpirados(): Promise<void> {
   const hace10Min = new Date(Date.now() - 10 * 60 * 1000);
@@ -62,7 +63,7 @@ export async function actualizarEstadosTurnos(): Promise<void> {
   //Actualizar directamente a "Finalizado" los turnos cuya fechaFin ya pasó 
   await prisma.turno.updateMany({
     where: {
-      estado: { notIn: ESTADOS_FINALES_UPPER },
+      estado: { notIn: ESTADOS_FINALES_FILTRO },
       fechaFin: { lte: ahora }, 
     },
     data: {
@@ -73,7 +74,7 @@ export async function actualizarEstadosTurnos(): Promise<void> {
   // Actualizar a "En curso" los turnos que ya empezaron 
   await prisma.turno.updateMany({
     where: {
-      estado: { notIn: ESTADOS_FINALES_UPPER },
+      estado: { notIn: ESTADOS_FINALES_FILTRO },
       fechaInicio: { lte: ahora }, // Ya empezó 
       fechaFin: { gt: ahora },    // Todavía no terminó 
     },

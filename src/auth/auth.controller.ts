@@ -1,8 +1,7 @@
 import {postUser,getUserEmail} from '../usuario/users.service.js'
 import {getPersonaFisicaDni,postPersonaFisica} from '../personaFisica/personaFisica.service.js'
 import { type Request, type Response } from "express";
-import { userSchema, userResponseSchema } from '../usuario/users.schema.js';
-import { personaFisicaSchema } from '../personaFisica/personaFisica.schema.js';
+import { userResponseSchema } from '../usuario/users.schema.js';
 import {enviarEmailResetPassword, login, refrescarToken, resetPassword} from './auth.service.js'
 import { errores } from '../shared/errors.js';
 
@@ -30,20 +29,20 @@ async function refrescarSesion(req: Request, res: Response) {
 async function registrar(req: Request, res: Response) {
     const {email,password,telefono,dni,nombre,apellido,fechaNacimiento} =req.body
 
-    const user = userSchema.parse({
+    const user = {
         personaFisicaDni:dni,
         email:email,
         password:password,
         telefono:telefono,
         tipoUsuarioId:3
-    })
+    }
 
-    const persona = personaFisicaSchema.parse({
+    const persona = {
         dni:dni,
         nombre:nombre,
         apellido:apellido,
         fechaNacimiento:fechaNacimiento
-    })
+    }
 
     //busco persona para ver si existe
     const findPersona = await getPersonaFisicaDni(persona.dni)

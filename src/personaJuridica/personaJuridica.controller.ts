@@ -1,6 +1,5 @@
 import { getAllPersonasJuridicas, getPersonaJuridicaCuit, postPersonaJuridica, deletePersonaJuridica, putPersonaJuridica} from "./personaJuridica.service.js"
 import { type Request, type Response } from "express";
-import { personaJuridicaSchema } from "./personaJuridica.schema.js";
 import { errores, asegurarEncontrado } from "../shared/errors.js";
 
 async function obtenerPersonasJuridicas(req: Request, res: Response) {
@@ -18,7 +17,7 @@ async function obtenerPersonaJuridica(req: Request, res: Response) {
 }
 
 async function crearPersonaJuridica(req: Request, res: Response) {
-    const personaJuridica = personaJuridicaSchema.parse(req.body)
+    const personaJuridica = req.body
     const resultado = await postPersonaJuridica(personaJuridica)
 
     return res.status(201).json({
@@ -29,7 +28,7 @@ async function crearPersonaJuridica(req: Request, res: Response) {
 
 async function modificarPersonaJuridica(req: Request, res: Response) {
     const cuit = req.params.cuit as string;
-    const personaJuridicaModificada = personaJuridicaSchema.partial().parse(req.body)
+    const personaJuridicaModificada = req.body
 
     const resultado = await putPersonaJuridica(cuit, personaJuridicaModificada)
 

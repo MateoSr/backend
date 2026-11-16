@@ -1,6 +1,5 @@
 import {getTurnoId,getAllTurnos,postTurno,postTurnoComoEncargado,putTurno,deleteTurno,getTurnoPorComplejo,cancelarTurnoServicio} from './turno.service.js'
 import {type Request,type Response} from 'express'
-import { turnoSchema } from './turno.schema.js'
 import { errores, asegurarEncontrado } from '../shared/errors.js'
 
 async function obtenerTurnos(req:Request,res:Response) {
@@ -22,7 +21,7 @@ async function obtenerTurnoPorComplejo(req:Request,res:Response) {
 }
 
 async function crearTurno(req:Request,res:Response) {
-    const turno = turnoSchema.parse(req.body)
+    const turno = req.body
     const resultado = await postTurno(turno)
     return res.status(201).json({
         message: 'Turno creado correctamente',
@@ -36,14 +35,13 @@ async function crearTurnoComoEncargado(req:Request,res:Response) {
     }
 
     const { cliente, turno } = req.body;
-    const turnoValidado = turnoSchema.parse(turno);
-    const resultado = await postTurnoComoEncargado(turnoValidado, cliente);
+    const resultado = await postTurnoComoEncargado(turno, cliente);
     return res.status(201).json({ message: 'Turno agendado correctamente', turno: resultado });
 }
 
 async function modificarTurno(req:Request,res:Response) {
     const {id} = req.params
-    const turnoModificado = turnoSchema.partial().parse(req.body)
+    const turnoModificado = req.body
     const resultado = await putTurno(Number(id),turnoModificado)
     if(!resultado){
         throw errores.noEncontrado("el turno")
