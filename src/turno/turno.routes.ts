@@ -2,12 +2,13 @@ import { Router } from "express";
 import {obtenerTurno,obtenerTurnos,crearTurno,crearTurnoComoEncargado,modificarTurno,borrarTurno,obtenerTurnoPorComplejo,cancelarTurno} from "./turno.controller.js"
 import { autenticar } from "../middleware/autenticas.js";
 import { autorizarPorNombre } from "../middleware/autorizar.js";
+import { autorizarDuenoOEncargadoDeComplejo } from "../middleware/propiedad.js";
 import { validarCuerpo } from "../middleware/validar.js";
 import { turnoSchema, turnoUpdateBodySchema, turnoEncargadoSchema } from "./turno.schema.js";
 
 const turnoRouter = Router()
 
-turnoRouter.get("/complejo/:id",autenticar,autorizarPorNombre("Dueño","Encargado"),obtenerTurnoPorComplejo)
+turnoRouter.get("/complejo/:id",autenticar,autorizarPorNombre("Dueño","Encargado"),autorizarDuenoOEncargadoDeComplejo("id"),obtenerTurnoPorComplejo)
 
 turnoRouter.get("/",autenticar,obtenerTurnos)
 

@@ -2,20 +2,63 @@ import { type Turno } from "./turno.schema.js";
 import { errores } from "../shared/errors.js";
 import { prisma } from "../shared/prisma.js";
 import { enviarEmailComprobanteReserva } from "../email/email.service.js";
+import type { TokenPayload } from "../shared/jwt.js";
 
 export interface TurnoSalida extends Turno {
     id: number;
     
 }
 
+export interface TurnoConComplejo extends TurnoSalida {
+  complejo: {
+    duenoId: number;
+    encargadoId: number;
+  };
+}
+
+interface TurnoConPropietarios {
+  clienteId?: number | null;
+  complejo: {
+    duenoId: number;
+    encargadoId: number;
+  };
+}
+
 export interface FiltrosTurno {
   clienteId?: number;
 }
 
-async function getTurnoId(id:number): Promise<TurnoSalida | null> {    const turno = await prisma.turno.findUnique({
-        where:{id}
+async function getTurnoId(id:number): Promise<TurnoConComplejo | null> {
+    const turno = await prisma.turno.findUnique({
+        where:{id},
+        include: {
+            complejo: {
+                select: {
+                    duenoId: true,
+                    encargadoId: true,
+                },
+            },
+        },
     })
     return turno || null
+}
+
+/**
+ * Regla de acceso a un turno:
+ * - Administrador: todos.
+ * - Cliente: sólo sus propios turnos.
+ * - Dueño/Encargado: sólo turnos de su complejo.
+ */
+function verificarAccesoTurno(turno: TurnoConPropietarios, usuario: TokenPayload): void {
+  if (usuario.rol === 'Administrador') return;
+
+  if (usuario.rol === 'Cliente' && turno.clienteId === usuario.userId) return;
+
+  if (usuario.rol === 'Dueño' && turno.complejo.duenoId === usuario.userId) return;
+
+  if (usuario.rol === 'Encargado' && turno.complejo.encargadoId === usuario.userId) return;
+
+  throw errores.prohibido('No tenés permiso para acceder a este turno');
 }
 
 async function getTurnoPorComplejo(complejoId:number): Promise<TurnoSalida[] | null>{
@@ -44,6 +87,21 @@ async function verificarComplejoActivo(complejoId: number): Promise<void> {
   });
   if (!complejo || complejo.estado === "Inactivo") {
     throw errores.conflicto("El complejo no está disponible.");
+  }
+}
+
+async function verificarEncargadoDeComplejo(complejoId: number, encargadoId: number): Promise<void> {
+  const complejo = await prisma.complejo.findUnique({
+    where: { id: complejoId },
+    select: { encargadoId: true },
+  });
+
+  if (!complejo) {
+    throw errores.noEncontrado('el complejo');
+  }
+
+  if (complejo.encargadoId !== encargadoId) {
+    throw errores.prohibido('No tenés permiso para agendar turnos en un complejo ajeno');
   }
 }
 
@@ -284,13 +342,14 @@ export async function getEstadisticasHoyDueno(duenoId: number) {
     },
   };
 }
-async function cancelarTurnoServicio(turnoId: number) {
+async function cancelarTurnoServicio(turnoId: number, usuario: TokenPayload) {
   // 1. Buscamos el turno en la base de datos
   const turno = await getTurnoId(turnoId);
 
   if (!turno) {
     throw errores.noEncontrado('el turno');
   }
+  verificarAccesoTurno(turno, usuario);
   if (turno.estado.toLowerCase() !== 'reservado') {
     throw errores.conflicto('Solo se pueden cancelar turnos que se encuentren en estado reservado.');
   }
@@ -305,6 +364,8 @@ async function cancelarTurnoServicio(turnoId: number) {
 
 export {
     getTurnoId,
+    verificarAccesoTurno,
+    verificarEncargadoDeComplejo,
     getTurnoPorComplejo,
     postTurno,
     postTurnoComoEncargado,

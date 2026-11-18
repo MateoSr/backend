@@ -22,7 +22,12 @@ export const turnoSchema = z
   });
 
 // turnoSchema tiene un refine() que impide .partial(); se reconstruye desde el shape.
-export const turnoUpdateBodySchema = z.object(turnoSchema.shape).partial();
+// El cliente y el complejo no se pueden cambiar en una actualización: el dueño
+// del turno y el complejo quedan definidos al crearlo.
+export const turnoUpdateBodySchema = z
+  .object(turnoSchema.shape)
+  .omit({ clienteId: true, complejoId: true })
+  .partial();
 
 // Body de POST /turnos/encargado: datos del cliente sin cuenta + turno.
 export const turnoEncargadoSchema = z.object({

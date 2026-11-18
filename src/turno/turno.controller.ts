@@ -1,4 +1,4 @@
-import {getTurnoId,getAllTurnos,postTurno,postTurnoComoEncargado,putTurno,deleteTurno,getTurnoPorComplejo,cancelarTurnoServicio} from './turno.service.js'
+import {getTurnoId,verificarAccesoTurno,verificarEncargadoDeComplejo,getAllTurnos,postTurno,postTurnoComoEncargado,putTurno,deleteTurno,getTurnoPorComplejo,cancelarTurnoServicio} from './turno.service.js'
 import {type Request,type Response} from 'express'
 import { errores, asegurarEncontrado } from '../shared/errors.js'
 
@@ -9,8 +9,13 @@ async function obtenerTurnos(req:Request,res:Response) {
 }
 
 async function obtenerTurno(req:Request,res:Response) {
+    if (!req.usuario) {
+        throw errores.noAutorizado("Usuario no autenticado")
+    }
+
     const {id} = req.params
     const turno = asegurarEncontrado(await getTurnoId(Number(id)), "el turno")
+    verificarAccesoTurno(turno, req.usuario)
     return res.status(200).json(turno)
 }
 
@@ -21,7 +26,12 @@ async function obtenerTurnoPorComplejo(req:Request,res:Response) {
 }
 
 async function crearTurno(req:Request,res:Response) {
-    const turno = req.body
+    if (!req.usuario) {
+        throw errores.noAutorizado("Usuario no autenticado")
+    }
+
+    // El cliente de la reserva sale del token, nunca del body.
+    const turno = { ...req.body, clienteId: req.usuario.userId }
     const resultado = await postTurno(turno)
     return res.status(201).json({
         message: 'Turno creado correctamente',
@@ -30,17 +40,28 @@ async function crearTurno(req:Request,res:Response) {
 }
 
 async function crearTurnoComoEncargado(req:Request,res:Response) {
-    if (req.usuario?.rol !== "Encargado") {
+    if (!req.usuario) {
+        throw errores.noAutorizado("Usuario no autenticado")
+    }
+    if (req.usuario.rol !== "Encargado") {
         throw errores.prohibido("Solo un encargado puede agendar de esta forma")
     }
 
     const { cliente, turno } = req.body;
+    await verificarEncargadoDeComplejo(turno.complejoId, req.usuario.userId)
     const resultado = await postTurnoComoEncargado(turno, cliente);
     return res.status(201).json({ message: 'Turno agendado correctamente', turno: resultado });
 }
 
 async function modificarTurno(req:Request,res:Response) {
+    if (!req.usuario) {
+        throw errores.noAutorizado("Usuario no autenticado")
+    }
+
     const {id} = req.params
+    const turnoActual = asegurarEncontrado(await getTurnoId(Number(id)), "el turno")
+    verificarAccesoTurno(turnoActual, req.usuario)
+
     const turnoModificado = req.body
     const resultado = await putTurno(Number(id),turnoModificado)
     if(!resultado){
@@ -64,6 +85,10 @@ async function borrarTurno(req:Request,res:Response) {
 }
 
 async function cancelarTurno(req: Request, res: Response) {
+    if (!req.usuario) {
+        throw errores.noAutorizado("Usuario no autenticado")
+    }
+
     const {id} = req.params;
     const turnoId = Number(id);
 
@@ -71,7 +96,7 @@ async function cancelarTurno(req: Request, res: Response) {
         throw errores.solicitudInvalida('El ID del turno es inválido.')
     }
 
-    const turnoActualizado = await cancelarTurnoServicio(turnoId);
+    const turnoActualizado = await cancelarTurnoServicio(turnoId, req.usuario);
 
     return res.status(200).json({
         message: 'Turno cancelado con éxito',

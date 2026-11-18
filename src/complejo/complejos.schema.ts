@@ -14,4 +14,13 @@ export const complejoSchema = z.object({
   encargadoId: z.number().int("El id debe ser un número entero")
 }).strict();
 
+// En una actualización no se permite cambiar el dueño ni el encargado.
+// Esos campos se asignan al crear el complejo (ruta de Administrador).
+export const complejoUpdateSchema = complejoSchema
+  .omit({
+    duenoId: true,
+    encargadoId: true,
+  })
+  .partial();
+
 export type Complejo = z.infer<typeof complejoSchema>; 

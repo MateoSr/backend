@@ -23,7 +23,8 @@ import {
 } from "../precio/precio.controller.js";
 import { crearOpinion } from "../opinion/opinion.controller.js";
 import { validarCuerpo, validarParams } from "../middleware/validar.js";
-import { complejoSchema } from "./complejos.schema.js";
+import { autorizarDuenoDeComplejo } from "../middleware/propiedad.js";
+import { complejoSchema, complejoUpdateSchema } from "./complejos.schema.js";
 import { horarioSchema } from "../horario/horario.schema.js";
 import { canchaSchema } from "../cancha/cancha.schema.js";
 import { precioBodySchema, precioParamsSchema } from "../precio/precio.schema.js";
@@ -47,7 +48,7 @@ complejoRouter.get("/:id", obtenerComplejo);
 
 complejoRouter.post("/", autenticar, autorizarPorNombre("Administrador"), validarCuerpo(complejoSchema), crearComplejo);
 
-complejoRouter.put("/:id", autenticar, autorizarPorNombre("Dueño"), validarCuerpo(complejoSchema.partial()), modificarComplejo);
+complejoRouter.put("/:id", autenticar, autorizarPorNombre("Dueño"), autorizarDuenoDeComplejo("id"), validarCuerpo(complejoUpdateSchema), modificarComplejo);
 
 complejoRouter.patch("/:id/baja", autenticar, autorizarPorNombre("Administrador"), darDeBajaComplejo);
 
@@ -66,11 +67,11 @@ complejoRouter.get("/:id_complejo/horarios", obtenerHorarios);
 
 complejoRouter.get("/:id_complejo/horarios/:num_dia", obtenerHorario);
 
-complejoRouter.post("/:id_complejo/horarios", autenticar, autorizarPorNombre("Dueño"), validarCuerpo(horarioSchema), crearHorario);
+complejoRouter.post("/:id_complejo/horarios", autenticar, autorizarPorNombre("Dueño"), autorizarDuenoDeComplejo("id_complejo"), validarCuerpo(horarioSchema), crearHorario);
 
-complejoRouter.put("/:id_complejo/horarios/:num_dia", autenticar, autorizarPorNombre("Dueño"), validarCuerpo(horarioSchema.partial()), modificarHorario);
+complejoRouter.put("/:id_complejo/horarios/:num_dia", autenticar, autorizarPorNombre("Dueño"), autorizarDuenoDeComplejo("id_complejo"), validarCuerpo(horarioSchema.partial()), modificarHorario);
 
-complejoRouter.delete("/:id_complejo/horarios/:num_dia", autenticar, autorizarPorNombre("Dueño"), borrarHorario);
+complejoRouter.delete("/:id_complejo/horarios/:num_dia", autenticar, autorizarPorNombre("Dueño"), autorizarDuenoDeComplejo("id_complejo"), borrarHorario);
 
 // Rutas para obtener las canchas de un complejo
 // cancha es débil de complejo
@@ -83,11 +84,11 @@ complejoRouter.get("/:id_complejo/canchas", obtenerCanchas);
 
 complejoRouter.get("/:id_complejo/canchas/:nro", obtenerCancha);
 
-complejoRouter.post("/:id_complejo/canchas", autenticar, autorizarPorNombre("Dueño"), validarCuerpo(canchaSchema), crearCancha);
+complejoRouter.post("/:id_complejo/canchas", autenticar, autorizarPorNombre("Dueño"), autorizarDuenoDeComplejo("id_complejo"), validarCuerpo(canchaSchema), crearCancha);
 
-complejoRouter.put("/:id_complejo/canchas/:nro", autenticar, autorizarPorNombre("Dueño"), validarCuerpo(canchaSchema.partial()), modificarCancha);
+complejoRouter.put("/:id_complejo/canchas/:nro", autenticar, autorizarPorNombre("Dueño"), autorizarDuenoDeComplejo("id_complejo"), validarCuerpo(canchaSchema.partial()), modificarCancha);
 
-complejoRouter.delete("/:id_complejo/canchas/:nro", autenticar, autorizarPorNombre("Dueño"), borrarCancha);
+complejoRouter.delete("/:id_complejo/canchas/:nro", autenticar, autorizarPorNombre("Dueño"), autorizarDuenoDeComplejo("id_complejo"), borrarCancha);
 
 // Rutas para obtener los precios de un complejo
 // precio es débil de complejo
@@ -98,6 +99,6 @@ complejoRouter.get("/:id_complejo/canchas/:nro_cancha/precios", obtenerPrecios);
 
 complejoRouter.get("/:id_complejo/canchas/:nro_cancha/precios/:fechaDesde", obtenerPrecio);
 
-complejoRouter.post("/:id_complejo/canchas/:nro_cancha/precios", autenticar, autorizarPorNombre("Dueño"), validarParams(precioParamsSchema), validarCuerpo(precioBodySchema), crearPrecio);
+complejoRouter.post("/:id_complejo/canchas/:nro_cancha/precios", autenticar, autorizarPorNombre("Dueño"), autorizarDuenoDeComplejo("id_complejo"), validarParams(precioParamsSchema), validarCuerpo(precioBodySchema), crearPrecio);
 
 export default complejoRouter;
